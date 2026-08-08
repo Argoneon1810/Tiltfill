@@ -11,14 +11,23 @@
   </header>
 
   <div class="stageWrap">
-    <div class="stage" id="stage">
-      <div class="overhang" id="overhang"></div>
-      <div class="visible" id="visible"></div>
-      <div class="edge"></div>
+    <div class="stage" id="stage" tabindex="0"
+         title="밝은 상자를 끌어 옮기세요. 두 번 누르면 가운데로 돌아갑니다">
+      <img id="shot" alt="">
+      <div class="win" id="win"></div>
+      <div class="lock hidden" id="lock">이 영상은 그림을 읽을 수 없습니다</div>
     </div>
   </div>
 
   <p class="readout" id="readout">영상을 찾는 중입니다</p>
+
+  <div class="row viewRow" id="viewRow">
+    <span class="rowLabel">보이는 영역</span>
+    <span class="viewHint" id="viewHint">상자를 끌어 옮기세요</span>
+    <button class="mini" id="pic" aria-pressed="true"
+            title="영상 그림을 미리보기에 그립니다. 끄면 도식만 남습니다">그림</button>
+    <button class="mini" id="center">가운데</button>
+  </div>
 
   <div class="spins" id="spins">
     <button class="spin" data-rot="0">바로</button>
@@ -59,23 +68,13 @@
     <button class="wide" id="detect">재생 화면 읽어서 찾기</button>
   </div>
 
-  <div class="row pan hidden" id="panXRow">
-    <label class="rowLabel" for="panX">좌우 위치</label>
-    <input type="range" id="panX" min="-100" max="100" step="1" value="0">
-    <button class="mini" data-reset="panX">가운데</button>
-  </div>
-  <div class="row pan hidden" id="panYRow">
-    <label class="rowLabel" for="panY">상하 위치</label>
-    <input type="range" id="panY" min="-100" max="100" step="1" value="0">
-    <button class="mini" data-reset="panY">가운데</button>
-  </div>
-
   <p class="note" id="note"></p>
 
   <button class="wide full" id="fullscreen">전체화면으로 전환</button>
 
   <footer class="foot">
-    <span>Shift+A 패널</span>
+    <span>Shift+A 펼치기</span>
+    <span>Shift+S 감추기</span>
     <span>Shift+Z 채움</span>
     <span>Shift+R 회전</span>
   </footer>

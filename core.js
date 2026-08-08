@@ -308,6 +308,76 @@
     };
   }
 
+  // 미리보기가 보여 줄 그림의 원본 좌표. 영상 파일 안에 구워진 검은 띠는
+  // 그림이 아니므로 잘라 낸다. 상자 계산에서 쓰는 contentSize 와 같은 전제다.
+  function pictureCrop() {
+    if (!video || !video.videoWidth || !video.videoHeight) return null;
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    const intrinsic = vw / vh;
+    const declared = state.sourceRatio > 0 ? state.sourceRatio : intrinsic;
+    let sw = vw;
+    let sh = vh;
+    if (declared >= intrinsic) sh = vh * (intrinsic / declared);
+    else sw = vw * (declared / intrinsic);
+    return { sx: (vw - sw) / 2, sy: (vh - sh) / 2, sw, sh };
+  }
+
+  // 화면에 보이는 방향 그대로 그림을 한 장 그린다. 픽셀을 되읽지 않으므로
+  // getImageData 나 toDataURL 과 달리 GPU 에서 CPU 로 옮기는 비용이 없다.
+  // 상자의 가로세로는 회전을 반영한 값이어야 한다. 즉 report 의 cw : ch 다.
+  function drawFrame(ctx, w, h) {
+    const crop = pictureCrop();
+    if (!crop || !ctx || !w || !h) return false;
+    const dw = turned() ? h : w;
+    const dh = turned() ? w : h;
+    try {
+      ctx.clearRect(0, 0, w, h);
+      ctx.save();
+      ctx.translate(w / 2, h / 2);
+      if (state.rotation) ctx.rotate(state.rotation * Math.PI / 180);
+      ctx.drawImage(video, crop.sx, crop.sy, crop.sw, crop.sh, -dw / 2, -dh / 2, dw, dh);
+      ctx.restore();
+      return true;
+    } catch (e) {
+      // 보호된 영상은 그리기 자체가 막힌다. 부른 쪽이 대체 그림을 쓴다.
+      try { ctx.restore(); } catch (e2) { /* 무시 */ }
+      return false;
+    }
+  }
+
+  // 확장 팝업은 다른 문서라 video 를 직접 못 그린다. 그림 한 장을 넘겨 준다.
+  // 막히는 경우가 두 가지고 뜻이 다르다.
+  //   blocked — 보호된 영상이라 그리기 자체가 막혔다. 페이지 안에서도 못 본다.
+  //   tainted — 교차 출처 영상이라 캔버스가 오염됐다. 화면에 그리는 것은 되므로
+  //             페이지 안의 패널에서는 보인다. 되읽어서 내보내는 것만 막힌다.
+  // 넓이가 작은 2D 캔버스는 크롬이 가속 대상에서 빼는데, 그러면 drawImage 가
+  // 원본 프레임을 통째로 CPU 로 끌어내린 뒤 줄인다. 1920x1080 을 회수하는
+  // 것과 384x216 을 회수하는 것의 차이라서, 여기서는 작게 잡을수록 손해다.
+  const MIN_CANVAS_AREA = 68000;
+  let frameCanvas = null;
+
+  function grabFrame(maxW) {
+    const r = lastReport || buildReport(1);
+    if (!r || !r.cw || !r.ch) return { error: "notready" };
+    let w = Math.max(16, Math.min(Math.round(maxW || 320), 512));
+    let h = Math.max(16, Math.round(w * r.ch / r.cw));
+    if (w * h < MIN_CANVAS_AREA) {
+      const k = Math.sqrt(MIN_CANVAS_AREA / (w * h));
+      w = Math.round(w * k);
+      h = Math.round(h * k);
+    }
+    if (!frameCanvas) frameCanvas = document.createElement("canvas");
+    if (frameCanvas.width !== w || frameCanvas.height !== h) {
+      frameCanvas.width = w;
+      frameCanvas.height = h;
+    }
+    if (!drawFrame(frameCanvas.getContext("2d"), w, h)) return { error: "blocked" };
+    // 이쪽은 되읽기가 반드시 필요하다. 팝업은 다른 문서라 캔버스를 넘길 수 없다.
+    try { return { url: frameCanvas.toDataURL("image/jpeg", 0.6) }; }
+    catch (e) { return { error: "tainted" }; }
+  }
+
   function snapshot() {
     return {
       ok: true,
@@ -418,9 +488,19 @@
      상태 변경
      ============================================================= */
 
+  // 보이는 영역을 끌어 옮기는 동안에는 setState 가 초당 수십 번 들어온다.
+  // 화면은 그때마다 갱신하되, 저장은 손을 뗀 뒤에 한 번만 한다.
+  let saveTimer = 0;
+  function save() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try { chrome.storage.local.set({ [STORE_KEY]: { ...state } }); } catch (e) { /* 무시 */ }
+    }, 300);
+  }
+
   function setState(patch) {
     Object.assign(state, patch);
-    try { chrome.storage.local.set({ [STORE_KEY]: { ...state } }); } catch (e) { /* 무시 */ }
+    save();
     schedule(true);
     notify();
   }
@@ -504,6 +584,7 @@
     if (msg.type === "resetFit") { const l = reset(); FZ.toast && FZ.toast(l); sendResponse(snapshot()); return true; }
     if (msg.type === "spin") { const l = spin(); FZ.toast && FZ.toast(l); sendResponse(snapshot()); return true; }
     if (msg.type === "togglePanel") { FZ.togglePanel && FZ.togglePanel(); sendResponse(snapshot()); return true; }
+    if (msg.type === "frame") { sendResponse(Object.assign(snapshot(), { frame: grabFrame(msg.maxW) })); return true; }
     if (msg.type === "detect") {
       detect((result) => sendResponse(Object.assign(snapshot(), { detect: result })));
       return true;
@@ -527,6 +608,8 @@
     cycle,
     reset,
     detect,
+    drawFrame,
+    grabFrame,
     requestFullscreen,
     subscribe: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
     getBox: () => box,
