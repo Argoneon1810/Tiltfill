@@ -208,9 +208,9 @@ body.novideo .full,
 body.novideo .stageWrap { opacity: .4; pointer-events: none; }
 
 .foot {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  /* 단축키 이름이 길어 한 줄에 둘씩 놓는다 */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 4px 8px;
   margin-top: 4px;
   padding-top: 9px;

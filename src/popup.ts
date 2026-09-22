@@ -1,4 +1,6 @@
 /* Fill Zoom — popup */
+import type { FitMode, FitState, Message, Report, Reply, Rotation } from "./types";
+import { FOOTER_HINTS, PAN_KEYS, pageKey } from "./shortcuts";
 
 const PRESETS = ["0", "2.39", "2.35", "2.3333", "2", "1.85", "1.7778", "1.3333", "1", "0.5625"];
 
@@ -6,51 +8,76 @@ const FRAME_MS = 500;   // 미리보기 그림을 다시 받아 오는 간격
 const FRAME_MAX = 320;  // 받아 올 그림의 가로 픽셀
 const UI_KEY = "ui:panel";  // 페이지 안 조작판과 함께 쓰는 설정
 
+function must<T extends HTMLElement = HTMLElement>(id: string): T {
+  const found = document.getElementById(id);
+  if (!found) throw new Error("popup.html 에 #" + id + " 가 없습니다");
+  return found as T;
+}
+
 const el = {
-  host: document.getElementById("host"),
-  stage: document.getElementById("stage"),
-  shot: document.getElementById("shot"),
-  win: document.getElementById("win"),
-  lock: document.getElementById("lock"),
-  readout: document.getElementById("readout"),
-  note: document.getElementById("note"),
-  fits: document.getElementById("fits"),
-  spins: document.getElementById("spins"),
-  ratio: document.getElementById("ratio"),
-  customRow: document.getElementById("customRow"),
-  customRatio: document.getElementById("customRatio"),
-  detect: document.getElementById("detect"),
-  fullscreen: document.getElementById("fullscreen"),
-  viewRow: document.getElementById("viewRow"),
-  viewHint: document.getElementById("viewHint"),
-  pic: document.getElementById("pic"),
-  center: document.getElementById("center")
+  host: must("host"),
+  stage: must<HTMLDivElement>("stage"),
+  shot: must<HTMLImageElement>("shot"),
+  win: must<HTMLDivElement>("win"),
+  lock: must<HTMLDivElement>("lock"),
+  readout: must("readout"),
+  note: must("note"),
+  fits: must("fits"),
+  spins: must("spins"),
+  ratio: must<HTMLSelectElement>("ratio"),
+  customRow: must("customRow"),
+  customRatio: must<HTMLInputElement>("customRatio"),
+  detect: must<HTMLButtonElement>("detect"),
+  fullscreen: must<HTMLButtonElement>("fullscreen"),
+  viewRow: must("viewRow"),
+  viewHint: must("viewHint"),
+  pic: must<HTMLButtonElement>("pic"),
+  center: must<HTMLButtonElement>("center"),
+  foot: must("foot")
 };
 
-let current = { fit: "off", sourceRatio: 0, panX: 0, panY: 0, rotation: 0 };
-let report = null;
+interface Geom {
+  ratio: number;
+  winW: number;
+  winH: number;
+  maxX: number;
+  maxY: number;
+  cx: number;
+  cy: number;
+}
+
+let current: FitState = { fit: "off", sourceRatio: 0, panX: 0, panY: 0, rotation: 0 };
+let report: Report | null = null;
 let message = "";
-let geom = null;
-let drag = null;
+let geom: Geom | null = null;
+let drag: { dx: number; dy: number } | null = null;
 let picture = true;
+
+/* 단축키 안내 — 글은 shortcuts.ts 의 표에서 만든다 ---------------- */
+
+for (const [action, label] of FOOTER_HINTS) {
+  const span = document.createElement("span");
+  span.textContent = pageKey(action) + " " + label;
+  el.foot.appendChild(span);
+}
 
 /* 콘텐츠 스크립트와 주고받기 ------------------------------------ */
 
-async function send(payload) {
+async function send(payload: Message): Promise<Reply | null> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab || !tab.id) return null;
   return new Promise((resolve) => {
-    chrome.tabs.sendMessage(tab.id, payload, (response) => {
+    chrome.tabs.sendMessage(tab.id!, payload, (response?: Reply) => {
       void chrome.runtime.lastError;
       resolve(response || null);
     });
   });
 }
 
-function receive(response) {
+function receive(response: Reply | null): Reply | null {
   if (!response) {
     document.body.classList.add("novideo");
-    el.readout.textContent = "이 탭에서 영상을 찾지 못했습니다";
+    el.readout.textContent = "유튜브 영상이 있는 탭에서만 동작합니다";
     return response;
   }
   document.body.classList.remove("novideo");
@@ -61,7 +88,7 @@ function receive(response) {
   return response;
 }
 
-async function patch(changes) {
+async function patch(changes: Partial<FitState>): Promise<void> {
   Object.assign(current, changes);
   render();
   receive(await send({ type: "setState", patch: changes }));
@@ -72,9 +99,9 @@ async function patch(changes) {
    그림을 오른쪽으로 밀면(panX 가 +) 보이는 창은 왼쪽으로 간다.
    ---------------------------------------------------------------- */
 
-function clamp(n, lo, hi) { return n < lo ? lo : (n > hi ? hi : n); }
+function clamp(n: number, lo: number, hi: number): number { return n < lo ? lo : (n > hi ? hi : n); }
 
-function viewGeom() {
+function viewGeom(): Geom | null {
   if (!report || !report.cw || !report.ch || !report.scale) return null;
   const winW = Math.min(1, report.boxW / (report.cw * report.scale));
   const winH = Math.min(1, report.boxH / (report.ch * report.scale));
@@ -132,7 +159,7 @@ async function refreshFrame() {
   const response = await send({ type: "frame", maxW: FRAME_MAX });
   framePending = false;
   if (!response) return;
-  const frame = response.frame || {};
+  const frame: { url?: string; error?: string } = response.frame || {};
   if (frame.url) {
     el.shot.src = frame.url;
     el.lock.classList.add("hidden");
@@ -151,7 +178,7 @@ setInterval(refreshFrame, FRAME_MS);
 
 /* 그림 켜고 끄기 — 페이지 안 조작판과 같은 설정을 씁니다 ---------- */
 
-function setPicture(next) {
+function setPicture(next: boolean): void {
   picture = !!next;
   if (!picture) {
     el.shot.removeAttribute("src");
@@ -160,7 +187,7 @@ function setPicture(next) {
   render();
   // shown 은 페이지 쪽이 쥔 값이다. 읽어서 그대로 얹어 준다.
   chrome.storage.local.get(UI_KEY, (obj) => {
-    const saved = (obj && obj[UI_KEY]) || {};
+    const saved = ((obj && obj[UI_KEY]) || {}) as { shown?: boolean; pic?: boolean };
     saved.pic = picture;
     chrome.storage.local.set({ [UI_KEY]: saved });
   });
@@ -170,7 +197,7 @@ function setPicture(next) {
 el.pic.addEventListener("click", () => setPicture(!picture));
 
 chrome.storage.local.get(UI_KEY, (obj) => {
-  const saved = obj && obj[UI_KEY];
+  const saved = (obj && obj[UI_KEY]) as { pic?: boolean } | undefined;
   picture = !saved || saved.pic !== false;
   render();
   if (picture) refreshFrame();
@@ -178,7 +205,7 @@ chrome.storage.local.get(UI_KEY, (obj) => {
 
 /* 보이는 영역 끌기 ------------------------------------------------ */
 
-function pointAt(event) {
+function pointAt(event: PointerEvent): { x: number; y: number } | null {
   const rect = el.stage.getBoundingClientRect();
   if (!rect.width || !rect.height) return null;
   return {
@@ -188,10 +215,10 @@ function pointAt(event) {
 }
 
 // 한 프레임에 한 번만 보낸다. 포인터 이벤트는 화면 갱신보다 잦다.
-let pendingPoint = null;
+let pendingPoint: { x: number; y: number } | null = null;
 let moveRaf = 0;
 
-function moveTo(p) {
+function moveTo(p: { x: number; y: number }): void {
   pendingPoint = p;
   if (moveRaf) return;
   moveRaf = requestAnimationFrame(() => {
@@ -201,10 +228,10 @@ function moveTo(p) {
     if (!q || !geom || !drag) return;
     const cx = q.x - drag.dx;
     const cy = q.y - drag.dy;
-    const changes = {};
+    const changes: { panX?: number; panY?: number } = {};
     if (geom.maxX > 0.0005) changes.panX = Math.round(clamp((0.5 - cx) / geom.maxX * 100, -100, 100));
     if (geom.maxY > 0.0005) changes.panY = Math.round(clamp((0.5 - cy) / geom.maxY * 100, -100, 100));
-    for (const key of Object.keys(changes)) {
+    for (const key of Object.keys(changes) as ("panX" | "panY")[]) {
       if (changes[key] !== current[key]) { patch(changes); return; }
     }
   });
@@ -230,8 +257,8 @@ el.stage.addEventListener("pointermove", (event) => {
   if (p) moveTo(p);
 });
 
-for (const type of ["pointerup", "pointercancel"]) {
-  el.stage.addEventListener(type, (event) => {
+for (const type of ["pointerup", "pointercancel"] as const) {
+  el.stage.addEventListener(type, (event: PointerEvent) => {
     if (!drag) return;
     drag = null;
     el.stage.classList.remove("grabbing");
@@ -242,12 +269,12 @@ for (const type of ["pointerup", "pointercancel"]) {
 el.stage.addEventListener("dblclick", () => patch({ panX: 0, panY: 0 }));
 
 el.stage.addEventListener("keydown", (event) => {
-  const step = event.shiftKey ? 20 : 5;
+  const step = event[PAN_KEYS.bigStepModifier] ? PAN_KEYS.bigStep : PAN_KEYS.step;
   let changes = null;
-  if (event.key === "ArrowLeft") changes = { panX: clamp(current.panX + step, -100, 100) };
-  else if (event.key === "ArrowRight") changes = { panX: clamp(current.panX - step, -100, 100) };
-  else if (event.key === "ArrowUp") changes = { panY: clamp(current.panY + step, -100, 100) };
-  else if (event.key === "ArrowDown") changes = { panY: clamp(current.panY - step, -100, 100) };
+  if (event.code === PAN_KEYS.left) changes = { panX: clamp(current.panX + step, -100, 100) };
+  else if (event.code === PAN_KEYS.right) changes = { panX: clamp(current.panX - step, -100, 100) };
+  else if (event.code === PAN_KEYS.up) changes = { panY: clamp(current.panY + step, -100, 100) };
+  else if (event.code === PAN_KEYS.down) changes = { panY: clamp(current.panY - step, -100, 100) };
   else return;
   event.preventDefault();
   patch(changes);
@@ -257,7 +284,7 @@ el.center.addEventListener("click", () => patch({ panX: 0, panY: 0 }));
 
 /* 글 ------------------------------------------------------------- */
 
-function describe() {
+function describe(): string {
   if (!report) return "영상 정보를 읽는 중입니다";
   const cutX = Math.round(report.cutX * 100);
   const cutY = Math.round(report.cutY * 100);
@@ -269,7 +296,7 @@ function describe() {
   return size + " · " + bits.join(", ") + " 잘림";
 }
 
-function noteText() {
+function noteText(): string {
   if (message) return message;
   if (!report) return "";
   if (current.fit === "off") {
@@ -284,11 +311,11 @@ function noteText() {
 
 /* 그리기 ---------------------------------------------------------- */
 
-function render() {
-  for (const button of el.fits.querySelectorAll(".fit")) {
+function render(): void {
+  for (const button of el.fits.querySelectorAll<HTMLElement>(".fit")) {
     button.setAttribute("aria-pressed", String(button.dataset.fit === current.fit));
   }
-  for (const button of el.spins.querySelectorAll(".spin")) {
+  for (const button of el.spins.querySelectorAll<HTMLElement>(".spin")) {
     button.setAttribute("aria-pressed", String(Number(button.dataset.rot) === (current.rotation || 0)));
   }
 
@@ -299,7 +326,7 @@ function render() {
     el.customRow.classList.add("hidden");
   } else {
     el.ratio.value = "custom";
-    el.customRatio.value = current.sourceRatio;
+    el.customRatio.value = String(current.sourceRatio);
     el.customRow.classList.remove("hidden");
   }
 
@@ -313,13 +340,13 @@ function render() {
 /* 입력 ------------------------------------------------------------ */
 
 el.fits.addEventListener("click", (event) => {
-  const button = event.target.closest(".fit");
-  if (button) { message = ""; patch({ fit: button.dataset.fit }); }
+  const button = (event.target as Element).closest<HTMLElement>(".fit");
+  if (button) { message = ""; patch({ fit: button.dataset.fit as FitMode }); }
 });
 
 el.spins.addEventListener("click", (event) => {
-  const button = event.target.closest(".spin");
-  if (button) { message = ""; patch({ rotation: Number(button.dataset.rot) }); }
+  const button = (event.target as Element).closest<HTMLElement>(".spin");
+  if (button) { message = ""; patch({ rotation: Number(button.dataset.rot) as Rotation }); }
 });
 
 el.ratio.addEventListener("change", () => {
@@ -356,7 +383,7 @@ el.fullscreen.addEventListener("click", async () => {
   if (!response) return;
   message = response.fullscreen
     ? ""
-    : "브라우저가 확장에서 시작한 전체화면 전환을 막았습니다. 재생기에서 직접 전환한 뒤 Shift+A 로 패널을 여세요.";
+    : `브라우저가 확장에서 시작한 전체화면 전환을 막았습니다. 재생기에서 직접 전환한 뒤 ${pageKey("togglePanel")} 로 패널을 여세요.`;
   receive(response);
 });
 
