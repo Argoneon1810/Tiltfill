@@ -231,6 +231,7 @@ body.novideo .stageWrap { opacity: .4; pointer-events: none; }
   cursor: pointer;
 }
 .wide:hover { border-color: var(--edge); }
+.reload { display: block; width: 100%; margin: -4px 0 13px; }
 .wide[disabled] { color: var(--muted); cursor: default; }
 
 .full {

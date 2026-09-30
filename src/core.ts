@@ -618,8 +618,9 @@ export function createCore(): Core {
     refresh: () => schedule(true)
   };
 
-  chrome.runtime.onMessage.addListener((msg: Message, _sender, sendResponse: (r: Reply) => void) => {
-    if (!attach()) return false;
+  chrome.runtime.onMessage.addListener((msg: Message, _sender, sendResponse: (r: Reply | null) => void) => {
+    // 영상이 없어도 답은 한다. 답이 없으면 팝업은 스크립트가 안 붙은 탭과 구분하지 못한다.
+    if (!attach()) { sendResponse(null); return false; }
 
     switch (msg.type) {
       case "getState": schedule(false); sendResponse(snapshot()); return true;

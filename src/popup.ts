@@ -21,6 +21,7 @@ const el = {
   win: must<HTMLDivElement>("win"),
   lock: must<HTMLDivElement>("lock"),
   readout: must("readout"),
+  reload: must<HTMLButtonElement>("reload"),
   note: must("note"),
   fits: must("fits"),
   spins: must("spins"),
@@ -63,12 +64,41 @@ for (const [action, label] of FOOTER_HINTS) {
 
 /* 콘텐츠 스크립트와 주고받기 ------------------------------------ */
 
+/* 답을 못 받은 이유. 이유마다 사용자가 할 일이 다르다.
+   - "site"   유튜브가 아닌 탭이다. 권한이 유튜브뿐이라 다른 탭은 url 이 비어 온다.
+   - "script" 유튜브인데 받는 쪽이 없다. 설치나 업데이트 전부터 열려 있던 탭이다.
+              크롬은 이미 열린 탭에 콘텐츠 스크립트를 넣어 주지 않는다.
+   - "video"  스크립트는 있는데 영상이 없다. 콘텐츠 스크립트가 null 로 답한다. */
+type Missing = "site" | "script" | "video";
+
+const MISSING_TEXT: Record<Missing, string> = {
+  site: "유튜브 영상 페이지에서 열어 주세요",
+  script: "확장이 이 탭에는 아직 붙지 않았습니다. 설치나 업데이트 전부터 열려 있던 탭입니다. 새로고침해 주세요",
+  video: "영상을 재생하면 조작할 수 있습니다"
+};
+
+let missing: Missing | null = null;
+let tabId: number | undefined;
+
+function isYoutube(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    const { protocol, hostname } = new URL(url);
+    return protocol === "https:" && (hostname === "youtube.com" || hostname.endsWith(".youtube.com"));
+  } catch (e) {
+    return false;
+  }
+}
+
 async function send(payload: Message): Promise<Reply | null> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab || !tab.id) return null;
+  if (!tab || !tab.id) { missing = "site"; return null; }
+  tabId = tab.id;
+  if (!isYoutube(tab.url)) { missing = "site"; return null; }
   return new Promise((resolve) => {
-    chrome.tabs.sendMessage(tab.id!, payload, (response?: Reply) => {
-      void chrome.runtime.lastError;
+    chrome.tabs.sendMessage(tab.id!, payload, (response?: Reply | null) => {
+      if (chrome.runtime.lastError) missing = "script";
+      else missing = response ? null : "video";
       resolve(response || null);
     });
   });
@@ -77,10 +107,12 @@ async function send(payload: Message): Promise<Reply | null> {
 function receive(response: Reply | null): Reply | null {
   if (!response) {
     document.body.classList.add("novideo");
-    el.readout.textContent = "유튜브 영상이 있는 탭에서만 동작합니다";
+    el.readout.textContent = MISSING_TEXT[missing || "video"];
+    el.reload.classList.toggle("hidden", missing !== "script");
     return response;
   }
   document.body.classList.remove("novideo");
+  el.reload.classList.add("hidden");
   current = response.state;
   report = response.report;
   el.host.textContent = response.host || "";
@@ -331,7 +363,8 @@ function render(): void {
   }
 
   drawPreview();
-  el.readout.textContent = describe();
+  // 그림 설정을 읽어 온 콜백도 render 를 부른다. 그때 안내 문구를 덮지 않는다.
+  el.readout.textContent = missing ? MISSING_TEXT[missing] : describe();
   el.note.textContent = noteText();
 
   el.fullscreen.textContent = (report && report.fullscreen) ? "전체화면 해제" : "전체화면으로 전환";
@@ -385,6 +418,12 @@ el.fullscreen.addEventListener("click", async () => {
     ? ""
     : `브라우저가 확장에서 시작한 전체화면 전환을 막았습니다. 재생기에서 직접 전환한 뒤 ${pageKey("togglePanel")} 로 패널을 여세요.`;
   receive(response);
+});
+
+// 새로고침하면 페이지가 새로 뜨면서 콘텐츠 스크립트가 붙는다. 팝업은 닫는다.
+el.reload.addEventListener("click", () => {
+  if (tabId !== undefined) chrome.tabs.reload(tabId);
+  window.close();
 });
 
 /* 시작 ------------------------------------------------------------ */
