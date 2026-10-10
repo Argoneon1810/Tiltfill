@@ -84,7 +84,8 @@ export const PAN_KEYS = {
 export const FRAME_WHEEL = {
   /** 이만큼 굴리면 한 프레임이다. 보통 마우스의 휠 한 칸이 100 이다. */
   pixelsPerFrame: 100,
-  /** 앞으로 가는 쪽. -1 이면 왼쪽(위)으로 굴릴 때, 1 이면 오른쪽(아래)으로 굴릴 때다. */
+  /** 앞으로 가는 쪽의 기본값. -1 이면 왼쪽(위)으로 굴릴 때, 1 이면 오른쪽(아래)으로 굴릴 때다.
+      패널의 "휠 반대" 단추가 이것을 뒤집는다. */
   forward: -1,
   modifier: "shiftKey" as "shiftKey" | "ctrlKey" | "altKey" | "metaKey"
 } as const;

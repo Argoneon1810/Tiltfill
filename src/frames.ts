@@ -15,6 +15,8 @@ export interface FrameStep {
   onWheel(event: WheelEvent): boolean;
   /** 영상이 바뀌었는지 보고, 필요하면 프레임 길이를 다시 잰다. 가끔 불러 준다. */
   watch(): void;
+  /** 굴리는 방향을 뒤집는다. 어느 쪽이 앞인지는 사람마다 다르게 느낀다. */
+  setFlip(on: boolean): void;
 }
 
 const SAMPLES = 12;        // 프레임 길이를 구하는 데 쓰는 간격의 수
@@ -26,6 +28,7 @@ export function createFrameStep(FZ: Core): FrameStep {
   let sampling = false;
   let key = "";
   let carry = 0;
+  let flip = false;
 
   function keyOf(video: HTMLVideoElement): string {
     return video.currentSrc + "|" + video.videoWidth + "x" + video.videoHeight;
@@ -95,7 +98,7 @@ export function createFrameStep(FZ: Core): FrameStep {
 
     // 줄 단위나 쪽 단위로 오는 값을 픽셀로 맞춘다.
     const unit = event.deltaMode === 1 ? 33 : (event.deltaMode === 2 ? 300 : 1);
-    carry += delta * unit * FRAME_WHEEL.forward;
+    carry += delta * unit * FRAME_WHEEL.forward * (flip ? -1 : 1);
     const count = Math.trunc(carry / FRAME_WHEEL.pixelsPerFrame);
     if (!count) return true;
     carry -= count * FRAME_WHEEL.pixelsPerFrame;
@@ -103,5 +106,5 @@ export function createFrameStep(FZ: Core): FrameStep {
     return true;
   }
 
-  return { onWheel, watch };
+  return { onWheel, watch, setFlip: (on) => { flip = on; carry = 0; } };
 }

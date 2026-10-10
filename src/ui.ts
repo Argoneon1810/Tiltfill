@@ -36,6 +36,7 @@ interface Parts {
   spinButtons: Record<number, HTMLButtonElement>;
   wideButton: HTMLButtonElement;
   pipButton: HTMLButtonElement;
+  flipButton: HTMLButtonElement;
   read: HTMLParagraphElement;
   ratio: HTMLSelectElement;
   viewRow: HTMLDivElement;
@@ -52,7 +53,7 @@ interface Parts {
   viewH?: number;
 }
 
-type UISaved = { shown?: boolean; pic?: boolean; wide?: boolean } | undefined;
+type UISaved = { shown?: boolean; pic?: boolean; wide?: boolean; flip?: boolean } | undefined;
 
 export function mountUI(FZ: Core): void {
   const UI_KEY = "ui:panel";
@@ -81,6 +82,7 @@ export function mountUI(FZ: Core): void {
   let picture = true;    // 미리보기에 영상 그림을 그릴지 (저장한다)
   let expanded = false;  // 본 패널을 펼쳤는지 (저장하지 않는다)
   let wide = false;      // 재생기를 창 가득 채울지 (저장한다)
+  let flip = false;      // 프레임 넘기기의 휠 방향을 뒤집을지 (저장한다)
 
   const winFill = createWindowFill();
   const frames = createFrameStep(FZ);
@@ -144,7 +146,7 @@ export function mountUI(FZ: Core): void {
   color:#EFEBF4;font:inherit;font-size:11.5px;cursor:pointer;}
 .fz-spin:hover{border-color:#5C566B;}
 .fz-spin[aria-pressed="true"]{background:#8CA0FF;border-color:#8CA0FF;color:#14131A;font-weight:700;}
-.fz-extras{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:9px;}
+.fz-extras{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:9px;}
 .fz-read{margin:0 0 10px;font-size:11.5px;color:#A29BB0;text-align:center;min-height:16px;}
 .fz-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
 .fz-label{flex:0 0 74px;font-size:11.5px;color:#A29BB0;}
@@ -528,6 +530,10 @@ export function mountUI(FZ: Core): void {
     pipButton.title = `돌린 방향 그대로 작은 창에 띄웁니다 (${pageKey("pip")})`;
     pipButton.addEventListener("click", () => pip.toggle());
     extras.appendChild(pipButton);
+    const flipButton = make("button", "fz-spin", "휠 반대");
+    flipButton.title = "가로 휠(또는 Shift + 휠)로 프레임을 넘길 때의 방향을 뒤집습니다";
+    flipButton.addEventListener("click", () => setFlip(!flip));
+    extras.appendChild(flipButton);
     root.appendChild(extras);
 
     const read = make("p", "fz-read", "");
@@ -584,7 +590,7 @@ export function mountUI(FZ: Core): void {
       "mousedown", "mouseup", "keydown", "keyup", "wheel"];
     for (const type of SEAL) root.addEventListener(type, (e) => e.stopPropagation(), false);
 
-    parts = { root, fitButtons, spinButtons, wideButton, pipButton, read, ratio, viewRow, view, canvas, win, lock, pic, note, detectButton };
+    parts = { root, fitButtons, spinButtons, wideButton, pipButton, flipButton, read, ratio, viewRow, view, canvas, win, lock, pic, note, detectButton };
     return root;
   }
 
@@ -658,6 +664,7 @@ export function mountUI(FZ: Core): void {
     }
     parts.wideButton.setAttribute("aria-pressed", String(wide));
     parts.pipButton.setAttribute("aria-pressed", String(pip.isOpen()));
+    parts.flipButton.setAttribute("aria-pressed", String(flip));
     const value = String(snap.state.sourceRatio || 0);
     const preset = PRESETS.find(([v]) => Math.abs(Number(v) - Number(value)) < 0.005);
     if (preset) {
@@ -765,7 +772,7 @@ export function mountUI(FZ: Core): void {
   }
 
   function saveUI() {
-    try { chrome.storage.local.set({ [UI_KEY]: { shown, pic: picture, wide } }); } catch (e) { /* 무시 */ }
+    try { chrome.storage.local.set({ [UI_KEY]: { shown, pic: picture, wide, flip } }); } catch (e) { /* 무시 */ }
   }
 
   function setShown(next: boolean): void {
@@ -777,6 +784,13 @@ export function mountUI(FZ: Core): void {
 
   function setWide(next: boolean): void {
     wide = !!next;
+    saveUI();
+    sync();
+  }
+
+  function setFlip(next: boolean): void {
+    flip = !!next;
+    frames.setFlip(flip);
     saveUI();
     sync();
   }
@@ -795,8 +809,11 @@ export function mountUI(FZ: Core): void {
     const nextShown = !value || value.shown !== false;
     const nextPic = !value || value.pic !== false;
     const nextWide = !!value && value.wide === true;
-    if (nextShown === shown && nextPic === picture && nextWide === wide) return;
+    const nextFlip = !!value && value.flip === true;
+    if (nextShown === shown && nextPic === picture && nextWide === wide && nextFlip === flip) return;
     wide = nextWide;
+    flip = nextFlip;
+    frames.setFlip(flip);
     shown = nextShown;
     if (!shown) expanded = false;
     if (nextPic !== picture) {
@@ -991,6 +1008,8 @@ export function mountUI(FZ: Core): void {
         shown = saved.shown !== false;
         picture = saved.pic !== false;
         wide = saved.wide === true;
+        flip = saved.flip === true;
+        frames.setFlip(flip);
       }
       reseat();
     });
