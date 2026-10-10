@@ -15,6 +15,7 @@
 import type { Core } from "./core";
 import type { Snapshot } from "./types";
 import { PAGE_KEYS, PAN_KEYS, matches, pageKey, type PageAction } from "./shortcuts";
+import { RATIO_PRESETS as PRESETS, SPIN_TEXT } from "./labels";
 import { createPip } from "./pip";
 import { createWindowFill } from "./winfill";
 
@@ -53,21 +54,6 @@ interface Parts {
 type UISaved = { shown?: boolean; pic?: boolean; wide?: boolean } | undefined;
 
 export function mountUI(FZ: Core): void {
-  const PRESETS: ReadonlyArray<readonly [string, string]> = [
-    ["0", "자동"],
-    ["2.39", "2.39 : 1"],
-    ["2.35", "2.35 : 1"],
-    ["2.3333", "21 : 9"],
-    ["2", "2 : 1"],
-    ["1.85", "1.85 : 1"],
-    ["1.7778", "16 : 9"],
-    ["1.3333", "4 : 3"],
-    ["1", "1 : 1"],
-    ["0.5625", "9 : 16"]
-  ];
-
-  const SPIN_TEXT: Record<number, string> = { 0: "바로", 90: "↻ 90", 180: "180", 270: "↺ 90" };
-
   const UI_KEY = "ui:panel";
   // 미리보기 캔버스는 작을수록 싸다는 직관이 크롬에서는 뒤집힌다. 넓이가
   // 일정 값보다 작은 2D 캔버스는 GPU 가속 대상에서 빠지고, 그러면

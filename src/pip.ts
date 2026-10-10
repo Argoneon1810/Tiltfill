@@ -18,10 +18,15 @@
  * 프레임이 고르지 않고 탭이 가려지면 더 떨어진다. 요소를 옮기면 디코더가
  * 그 창에 바로 그린다. 창을 닫을 때 원래 자리로 되돌려 놓는다.
  *
+ * 창 위쪽에는 마우스를 올렸을 때만 나타나는 조작줄을 둔다. 이 창은 그림 전체를
+ * 보여 주므로 채움 방식이나 보이는 영역은 여기서 뜻이 없다. 창 안에서 뜻이 있는
+ * 회전과 그림 비율만 담는다.
+ *
  * 창을 여는 일은 사용자 제스처가 있어야 한다. 페이지의 키 입력과 클릭에서
  * 바로 부르는 toggle() 만 이 조건을 채운다.
  */
 import type { Core } from "./core";
+import { RATIO_PRESETS, SPIN_TEXT } from "./labels";
 
 interface DocumentPip {
   requestWindow(options?: {
@@ -52,6 +57,20 @@ video{position:absolute !important;left:50% !important;top:50% !important;
   font:500 clamp(13px,4.2vmin,30px)/1.4 system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
   color:#fff;}
 .cc span{padding:.08em .35em;background:rgba(8,8,8,.75);white-space:pre-wrap;}
+/* 조작줄. 마우스가 창 위에 있을 때만 보인다. 창이 좁으면 두 줄로 접힌다. */
+.bar{position:absolute;left:0;top:0;right:0;z-index:2;display:flex;flex-wrap:wrap;
+  align-items:center;justify-content:center;gap:4px;padding:6px 6px 14px;cursor:default;
+  background:linear-gradient(rgba(8,7,12,.82),rgba(8,7,12,0));
+  opacity:0;transition:opacity .12s ease;}
+.stage:hover .bar,.bar:focus-within{opacity:1;}
+.bar button,.bar select{padding:5px 7px;border:1px solid #322E3D;border-radius:5px;
+  background:rgba(30,28,38,.94);color:#EFEBF4;cursor:pointer;
+  font:500 11.5px/1.2 system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;}
+.bar button:hover,.bar select:hover{border-color:#5C566B;}
+.bar button[aria-pressed="true"]{background:#8CA0FF;border-color:#8CA0FF;color:#14131A;font-weight:700;}
+.bar .gap{flex:0 0 6px;}
+.bar .msg{flex:0 0 100%;min-height:0;text-align:center;color:#EFEBF4;
+  font:400 11px/1.3 system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;}
 `;
 
 /** onPageKey 는 페이지 단축키를 처리하고, 처리했으면 true 를 돌려준다. */
@@ -131,6 +150,79 @@ export function createPip(
     stage.appendChild(cc);
     if (playing && video.paused) video.play().catch(() => {});
 
+    /* 조작줄 — 회전과 그림 비율 */
+
+    const bar = doc.createElement("div");
+    bar.className = "bar";
+    const spinButtons = new Map<number, HTMLButtonElement>();
+    for (const deg of FZ.ROTATIONS) {
+      const b = doc.createElement("button");
+      b.textContent = SPIN_TEXT[deg];
+      b.title = FZ.ROT_LABEL[deg];
+      b.addEventListener("click", () => FZ.setState({ rotation: deg }));
+      bar.appendChild(b);
+      spinButtons.set(deg, b);
+    }
+    const gapEl = doc.createElement("span");
+    gapEl.className = "gap";
+    bar.appendChild(gapEl);
+    const ratio = doc.createElement("select");
+    ratio.title = "그림 비율. 영상 안에 구워진 검은 띠를 잘라 냅니다";
+    for (const [value, label] of RATIO_PRESETS) {
+      const option = doc.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      ratio.appendChild(option);
+    }
+    ratio.addEventListener("change", () => FZ.setState({ sourceRatio: Number(ratio.value) }));
+    bar.appendChild(ratio);
+    const detect = doc.createElement("button");
+    detect.textContent = "감지";
+    detect.title = "재생 중인 화면을 읽어 영상 속 검은 띠를 찾습니다";
+    const msg = doc.createElement("div");
+    msg.className = "msg";
+    let msgTimer = 0;
+    detect.addEventListener("click", () => {
+      detect.disabled = true;
+      detect.textContent = "…";
+      FZ.detect((result) => {
+        detect.disabled = false;
+        detect.textContent = "감지";
+        msg.textContent = result.error || (result.ratio ? "그림 비율을 " + result.ratio + " 로 잡았습니다." : "");
+        clearTimeout(msgTimer);
+        msgTimer = window.setTimeout(() => { msg.textContent = ""; }, 4000);
+      });
+    });
+    bar.appendChild(detect);
+    bar.appendChild(msg);
+    stage.appendChild(bar);
+    // 조작줄을 누른 것이 재생과 정지로 넘어가지 않게 한다.
+    for (const type of ["pointerdown", "click", "dblclick"]) {
+      bar.addEventListener(type, (event) => event.stopPropagation());
+    }
+
+    function paintBar(): void {
+      for (const [deg, b] of spinButtons) b.setAttribute("aria-pressed", String(deg === (FZ.state.rotation || 0)));
+      const value = String(FZ.state.sourceRatio || 0);
+      const preset = RATIO_PRESETS.find(([v]) => Math.abs(Number(v) - Number(value)) < 0.005);
+      let custom = ratio.querySelector<HTMLOptionElement>("option[data-custom]");
+      if (preset) {
+        if (custom) custom.remove();
+        ratio.value = preset[0];
+      } else {
+        // 감지가 흔한 비율에 안 맞는 값을 잡았다. 그 값을 항목으로 더해 보여 준다.
+        if (!custom) {
+          custom = doc.createElement("option");
+          custom.setAttribute("data-custom", "1");
+          ratio.appendChild(custom);
+        }
+        custom.value = value;
+        custom.textContent = value + " : 1";
+        ratio.value = value;
+      }
+    }
+    paintBar();
+
     /* 자리 잡기 — 그림이 창 안에 다 들어오게 맞추고 돌린다 */
 
     function layout(): void {
@@ -203,6 +295,8 @@ export function createPip(
     // 이 창은 다른 문서라서 페이지에 걸어 둔 키 처리가 닿지 않는다. 같은 처리로 넘긴다.
     doc.addEventListener("keydown", (event) => {
       if (onPageKey(event)) return;
+      // 조작줄에 초점이 있으면 Space 와 방향키는 단추와 드롭다운의 것이다.
+      if (bar.contains(event.target as Node)) return;
       if (event.code === "Space" || event.code === "KeyK") playPause();
       else if (event.code === "ArrowLeft") video.currentTime = Math.max(0, video.currentTime - SEEK_S);
       else if (event.code === "ArrowRight") video.currentTime = video.currentTime + SEEK_S;
@@ -236,6 +330,7 @@ export function createPip(
     let lastAspect = aspect();
     const onState = () => {
       layout();
+      paintBar();
       const a = aspect();
       if (Math.abs(a - lastAspect) < 0.001) return;
       lastAspect = a;
@@ -260,6 +355,7 @@ export function createPip(
       captionObs.disconnect();
       unsubscribe();
       clearTimeout(snapTimer);
+      clearTimeout(msgTimer);
       video.removeEventListener("loadedmetadata", layout);
       video.removeEventListener("resize", layout);
       // 새 창이 이미 video 를 가져갔다면 이 창은 조용히 물러난다.
