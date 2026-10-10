@@ -26,6 +26,7 @@
  * 바로 부르는 toggle() 만 이 조건을 채운다.
  */
 import type { Core } from "./core";
+import { t } from "./i18n";
 import { RATIO_PRESETS, SPIN_TEXT } from "./labels";
 
 interface DocumentPip {
@@ -95,12 +96,12 @@ export function createPip(
 
   // 문서 PIP 를 못 쓰는 크롬에서만 온다.
   function plain(video: HTMLVideoElement): void {
-    if (FZ.state.rotation) FZ.toast?.("돌린 화면은 기본 PIP 로 옮길 수 없습니다");
+    if (FZ.state.rotation) FZ.toast?.(t("pipNoRotate"));
     try {
       video.disablePictureInPicture = false;
-      video.requestPictureInPicture().catch(() => FZ.toast?.("PIP 를 열지 못했습니다"));
+      video.requestPictureInPicture().catch(() => FZ.toast?.(t("pipFailed")));
     } catch (e) {
-      FZ.toast?.("PIP 를 열지 못했습니다");
+      FZ.toast?.(t("pipFailed"));
     }
   }
 
@@ -109,7 +110,7 @@ export function createPip(
     if (document.pictureInPictureElement) { document.exitPictureInPicture().catch(() => {}); return; }
 
     const video = FZ.getVideo();
-    if (!video) { FZ.toast?.("영상을 찾지 못했습니다"); return; }
+    if (!video) { FZ.toast?.(t("videoNotFound")); return; }
 
     if (!request(video, LONG_SIDE)) plain(video);
   }
@@ -125,7 +126,7 @@ export function createPip(
     api.requestWindow({
       width: Math.round(size.w * k), height: Math.round(size.h * k), preferInitialWindowPlacement: true
     })
-      .then((w) => open(w, video), () => FZ.toast?.("PIP 를 열지 못했습니다"));
+      .then((w) => open(w, video), () => FZ.toast?.(t("pipFailed")));
     return true;
   }
 
@@ -168,7 +169,7 @@ export function createPip(
     gapEl.className = "gap";
     bar.appendChild(gapEl);
     const ratio = doc.createElement("select");
-    ratio.title = "그림 비율. 영상 안에 구워진 검은 띠를 잘라 냅니다";
+    ratio.title = t("ratioTitle");
     for (const [value, label] of RATIO_PRESETS) {
       const option = doc.createElement("option");
       option.value = value;
@@ -178,8 +179,8 @@ export function createPip(
     ratio.addEventListener("change", () => FZ.setState({ sourceRatio: Number(ratio.value) }));
     bar.appendChild(ratio);
     const detect = doc.createElement("button");
-    detect.textContent = "감지";
-    detect.title = "재생 중인 화면을 읽어 영상 속 검은 띠를 찾습니다";
+    detect.textContent = t("detect");
+    detect.title = t("detectTitle");
     const msg = doc.createElement("div");
     msg.className = "msg";
     let msgTimer = 0;
@@ -188,8 +189,8 @@ export function createPip(
       detect.textContent = "…";
       FZ.detect((result) => {
         detect.disabled = false;
-        detect.textContent = "감지";
-        msg.textContent = result.error || (result.ratio ? "그림 비율을 " + result.ratio + " 로 잡았습니다." : "");
+        detect.textContent = t("detect");
+        msg.textContent = result.error || (result.ratio ? t("detectFound", result.ratio) : "");
         clearTimeout(msgTimer);
         msgTimer = window.setTimeout(() => { msg.textContent = ""; }, 4000);
       });

@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
   <meta charset="utf-8">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <header class="head">
-    <span class="mark">Fill Zoom <span class="version" id="version"></span></span>
+    <span class="mark"><span id="name"></span> <span class="version" id="version"></span></span>
     <span class="host" id="host">—</span>
   </header>
 
-  <p class="readout" id="readout">영상을 찾는 중입니다</p>
+  <p class="readout" id="readout"></p>
 
-  <button class="wide hidden" id="open">재생기에서 패널 열기</button>
-  <button class="wide hidden" id="reload">이 탭 새로고침</button>
+  <button class="wide hidden" id="open"></button>
+  <button class="wide hidden" id="reload"></button>
 
-  <p class="note">조작은 재생기 안의 패널에서 합니다. 전체화면에서도 같은 패널을 씁니다.</p>
+  <p class="note" id="note"></p>
 
-  <!-- 단축키 안내는 popup.ts 가 shortcuts.ts 의 표로 채운다 -->
+  <!-- 글은 모두 popup.ts 가 채운다. 언어에 따라 달라지기 때문이다 -->
   <ul class="foot" id="foot"></ul>
 
   <script src="popup.js"></script>

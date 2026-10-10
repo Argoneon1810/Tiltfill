@@ -15,6 +15,7 @@
 import type { Core } from "./core";
 import type { Snapshot } from "./types";
 import { PAGE_KEYS, PANEL_HINTS, PAN_KEYS, matches, pageKey, type PageAction } from "./shortcuts";
+import { t } from "./i18n";
 import { RATIO_PRESETS as PRESETS, SPIN_TEXT } from "./labels";
 import { createFrameStep } from "./frames";
 import { createPip } from "./pip";
@@ -503,9 +504,9 @@ export function mountUI(FZ: Core): void {
     const root = make("div", "fz-panel");
 
     const head = make("div", "fz-head");
-    head.appendChild(make("span", "fz-title", "Fill Zoom"));
+    head.appendChild(make("span", "fz-title", t("extName")));
     const close = make("button", "fz-close", "×");
-    close.title = "접기";
+    close.title = t("collapse");
     close.addEventListener("click", () => setExpanded(false));
     head.appendChild(close);
     root.appendChild(head);
@@ -532,16 +533,16 @@ export function mountUI(FZ: Core): void {
     root.appendChild(spins);
 
     const extras = make("div", "fz-extras");
-    const wideButton = make("button", "fz-spin", "창 채움");
-    wideButton.title = `재생기를 브라우저 창 가득 채웁니다 (${pageKey("windowFill")})`;
+    const wideButton = make("button", "fz-spin", t("windowFill"));
+    wideButton.title = t("windowFillTitle", pageKey("windowFill"));
     wideButton.addEventListener("click", () => setWide(!wide));
     extras.appendChild(wideButton);
     const pipButton = make("button", "fz-spin", "PIP");
-    pipButton.title = `돌린 방향 그대로 작은 창에 띄웁니다 (${pageKey("pip")})`;
+    pipButton.title = t("pipTitle", pageKey("pip"));
     pipButton.addEventListener("click", () => pip.toggle());
     extras.appendChild(pipButton);
-    const flipButton = make("button", "fz-spin", "휠 반대");
-    flipButton.title = "가로 휠(또는 Shift + 휠)로 프레임을 넘길 때의 방향을 뒤집습니다";
+    const flipButton = make("button", "fz-spin", t("flipWheel"));
+    flipButton.title = t("flipWheelTitle");
     flipButton.addEventListener("click", () => setFlip(!flip));
     extras.appendChild(flipButton);
     root.appendChild(extras);
@@ -550,7 +551,7 @@ export function mountUI(FZ: Core): void {
     root.appendChild(read);
 
     const ratioRow = make("div", "fz-row");
-    ratioRow.appendChild(make("label", "fz-label", "그림 비율"));
+    ratioRow.appendChild(make("label", "fz-label", t("pictureRatio")));
     const ratio = make("select");
     for (const [value, label] of PRESETS) {
       const option = make("option", null, label);
@@ -559,15 +560,15 @@ export function mountUI(FZ: Core): void {
     }
     ratio.addEventListener("change", () => FZ.setState({ sourceRatio: Number(ratio.value) }));
     ratioRow.appendChild(ratio);
-    const detectButton = make("button", "fz-mini", "감지");
-    detectButton.title = "재생 중인 화면을 읽어 영상 속 검은 띠를 찾습니다";
+    const detectButton = make("button", "fz-mini", t("detect"));
+    detectButton.title = t("detectTitle");
     detectButton.addEventListener("click", () => runDetect(detectButton, note));
     ratioRow.appendChild(detectButton);
     root.appendChild(ratioRow);
 
     const strideRow = make("div", "fz-row");
-    strideRow.title = "가로 휠(또는 Shift + 휠) 한 칸에 넘길 프레임 수";
-    strideRow.appendChild(make("label", "fz-label", "휠 한 칸"));
+    strideRow.title = t("strideTitle");
+    strideRow.appendChild(make("label", "fz-label", t("strideLabel")));
     const strideInput = make("input");
     strideInput.type = "number";
     strideInput.min = "1";
@@ -578,28 +579,28 @@ export function mountUI(FZ: Core): void {
       if (value >= 1 && value <= STRIDE_MAX) setStride(value);
     });
     strideRow.appendChild(strideInput);
-    strideRow.appendChild(make("span", "fz-unit", "프레임"));
+    strideRow.appendChild(make("span", "fz-unit", t("framesUnit")));
     root.appendChild(strideRow);
 
     const viewRow = make("div", "fz-viewRow fz-hidden");
     const viewHead = make("div", "fz-viewHead");
-    viewHead.appendChild(make("span", "fz-label", "보이는 영역"));
-    const pic = make("button", "fz-mini", "그림");
-    pic.title = "영상 그림을 미리보기에 그립니다. 끄면 도식만 남고 아무것도 그리지 않습니다";
+    viewHead.appendChild(make("span", "fz-label", t("visibleArea")));
+    const pic = make("button", "fz-mini", t("picture"));
+    pic.title = t("pictureTitle");
     pic.addEventListener("click", () => setPicture(!picture));
     viewHead.appendChild(pic);
-    const center = make("button", "fz-mini", "가운데");
-    center.title = "가운데로 되돌립니다";
+    const center = make("button", "fz-mini", t("center"));
+    center.title = t("centerTitle");
     center.addEventListener("click", () => FZ.setState({ panX: 0, panY: 0 }));
     viewHead.appendChild(center);
     viewRow.appendChild(viewHead);
 
     const view = make("div", "fz-view");
     view.tabIndex = 0;
-    view.title = "밝은 상자를 끌어 옮기세요. 두 번 누르면 가운데로 돌아갑니다";
+    view.title = t("viewTitle");
     const canvas = document.createElement("canvas");
     const win = make("div", "fz-win");
-    const lock = make("div", "fz-lock fz-hidden", "이 영상은 그림을 읽을 수 없습니다");
+    const lock = make("div", "fz-lock fz-hidden", t("previewBlocked"));
     view.appendChild(canvas);
     view.appendChild(win);
     view.appendChild(lock);
@@ -614,7 +615,7 @@ export function mountUI(FZ: Core): void {
     const keys = make("ul", "fz-keys");
     for (const [action, label] of PANEL_HINTS) {
       const item = make("li");
-      item.appendChild(make("span", null, label));
+      item.appendChild(make("span", null, t(label)));
       item.appendChild(make("kbd", null, pageKey(action)));
       keys.appendChild(item);
     }
@@ -632,8 +633,8 @@ export function mountUI(FZ: Core): void {
 
   function buildLauncher(): HTMLButtonElement {
     const button = make("button", "fz-launch");
-    button.title = `Fill Zoom 열기 (${pageKey("togglePanel")})`;
-    button.setAttribute("aria-label", "Fill Zoom 열기");
+    button.title = `${t("openNamed", t("extName"))} (${pageKey("togglePanel")})`;
+    button.setAttribute("aria-label", t("openNamed", t("extName")));
     // 아이콘만 들어 있는 정적 마크업이다.
     button.innerHTML = ICON;
     button.addEventListener("click", (event) => {
@@ -651,9 +652,9 @@ export function mountUI(FZ: Core): void {
     button.textContent = "…";
     FZ.detect((result) => {
       button.disabled = false;
-      button.textContent = "감지";
+      button.textContent = t("detect");
       if (result.error) note.textContent = result.error;
-      else if (result.ratio) note.textContent = "그림 비율을 " + result.ratio + " 로 잡았습니다.";
+      else if (result.ratio) note.textContent = t("detectFound", result.ratio);
     });
   }
 
@@ -663,27 +664,27 @@ export function mountUI(FZ: Core): void {
 
   function describe(snap: Snapshot): string {
     const r = snap.report;
-    if (!r) return "영상 정보를 읽는 중입니다";
+    if (!r) return t("readingVideo");
     const cutX = Math.round(r.cutX * 100);
     const cutY = Math.round(r.cutY * 100);
-    const size = r.scale.toFixed(2) + "배";
-    if (cutX <= 0 && cutY <= 0) return size + " · 잘리는 부분 없음";
+    const size = t("scaleTimes", r.scale.toFixed(2));
+    if (cutX <= 0 && cutY <= 0) return size + " · " + t("noCut");
     const bits = [];
-    if (cutX > 0) bits.push("좌우 " + cutX + "%");
-    if (cutY > 0) bits.push("위아래 " + cutY + "%");
-    return size + " · " + bits.join(", ") + " 잘림";
+    if (cutX > 0) bits.push(t("cutSides", cutX));
+    if (cutY > 0) bits.push(t("cutTopBottom", cutY));
+    return size + " · " + t("cutList", bits.join(", "));
   }
 
   function noteFor(snap: Snapshot): string {
     const r = snap.report;
     if (!r) return "";
     if (snap.state.fit === "off") {
-      if (snap.state.rotation) return "돌린 그림이 상자 안에 들어오도록 맞춰 놓았습니다.";
+      if (snap.state.rotation) return t("noteRotatedFit");
       return "";
     }
     if (r.scale > 1.001) return "";
-    if (snap.state.sourceRatio > 0) return "고른 비율로는 더 확대할 여지가 없습니다.";
-    return "이 영상은 이미 그 방향을 채우고 있습니다. 영상 안에 검은 띠가 구워져 있다면 감지를 눌러 보세요.";
+    if (snap.state.sourceRatio > 0) return t("noteNoRoom");
+    return t("noteAlreadyFills");
   }
 
   function paint(snap: Snapshot): void {
@@ -784,7 +785,10 @@ export function mountUI(FZ: Core): void {
     winFill.sync(wide);
     if (playerButton) {
       playerButton.classList.toggle("fz-off", !shown);
-      playerButton.title = (shown ? "Fill Zoom 조작판 감추기" : "Fill Zoom 조작판 띄우기") + ` (${pageKey("toggleShown")})`;
+      const name = t("extName");
+      // 열쇠는 글자 그대로 적는다. 빌드가 쓰인 열쇠를 찾을 때 계산된 열쇠는 못 본다.
+      playerButton.title = (shown ? t("hideControlsNamed", name) : t("showControlsNamed", name)) +
+        ` (${pageKey("toggleShown")})`;
     }
     if (!shown) {
       if (panel && panel.parentElement) panel.remove();
@@ -906,7 +910,7 @@ export function mountUI(FZ: Core): void {
     ensureStyle();
     const button = document.createElement("button");
     button.className = "ytp-button fz-btn";
-    button.setAttribute("aria-label", "Fill Zoom");
+    button.setAttribute("aria-label", t("extName"));
     // 아이콘만 들어 있는 정적 마크업이다.
     button.innerHTML = ICON;
     button.addEventListener("click", (event) => {
@@ -981,7 +985,7 @@ export function mountUI(FZ: Core): void {
   FZ.stats = () => ({
     drawMs: Number(drawMs.toFixed(3)),
     gapMs: Number(gapMs.toFixed(1)),
-    fps: gapMs > 0 ? Number((1000 / gapMs).toFixed(1)) : "영상 프레임마다",
+    fps: gapMs > 0 ? Number((1000 / gapMs).toFixed(1)) : "every video frame",
     canvas: parts ? parts.canvas.width + "x" + parts.canvas.height : null,
     running
   });
@@ -1003,7 +1007,7 @@ export function mountUI(FZ: Core): void {
     spin: () => FZ.toast?.(FZ.spin()),
     togglePanel: () => setExpanded(!expanded),
     toggleShown: () => setShown(!shown),
-    windowFill: () => { setWide(!wide); FZ.toast?.(wide ? "창 가득 채움" : "창 채움 해제"); },
+    windowFill: () => { setWide(!wide); FZ.toast?.(wide ? t("toastWindowFillOn") : t("toastWindowFillOff")); },
     pip: () => pip.toggle()
   };
   const KEYED = Object.keys(PAGE_KEYS) as PageAction[];

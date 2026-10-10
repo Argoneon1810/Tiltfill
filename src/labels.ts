@@ -1,8 +1,9 @@
 /* Fill Zoom — 페이지 안 패널과 PIP 창의 조작줄이 함께 쓰는 글 */
+import { t } from "./i18n";
 
 /** 그림 비율 드롭다운. 값은 가로 ÷ 세로이고, 0 은 영상이 알려 주는 비율을 쓴다는 뜻이다. */
 export const RATIO_PRESETS: ReadonlyArray<readonly [string, string]> = [
-  ["0", "자동"],
+  ["0", t("ratioAuto")],
   ["2.39", "2.39 : 1"],
   ["2.35", "2.35 : 1"],
   ["2.3333", "21 : 9"],
@@ -15,4 +16,4 @@ export const RATIO_PRESETS: ReadonlyArray<readonly [string, string]> = [
 ];
 
 /** 회전 단추에 적는 짧은 글. 긴 이름은 core 의 ROT_LABEL 에 있다. */
-export const SPIN_TEXT: Record<number, string> = { 0: "바로", 90: "↻ 90", 180: "180", 270: "↺ 90" };
+export const SPIN_TEXT: Record<number, string> = { 0: t("spinUpright"), 90: "↻ 90", 180: "180", 270: "↺ 90" };

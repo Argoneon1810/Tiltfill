@@ -1,0 +1,221 @@
+{
+  "extName": {
+    "message": "Fill Zoom"
+  },
+  "extDescription": {
+    "message": "유튜브 영상의 검은 여백을 잘라내 화면을 채웁니다. 회전, 돌린 방향 그대로 뜨는 PIP, 창 가득 채우기, 프레임 넘기기를 함께 씁니다."
+  },
+  "fitOff": {
+    "message": "원래 크기"
+  },
+  "fitVertical": {
+    "message": "상하 채움"
+  },
+  "fitHorizontal": {
+    "message": "좌우 채움"
+  },
+  "fitBoth": {
+    "message": "꽉 채움"
+  },
+  "rot0": {
+    "message": "바로"
+  },
+  "rot90": {
+    "message": "오른쪽 90도"
+  },
+  "rot180": {
+    "message": "180도"
+  },
+  "rot270": {
+    "message": "왼쪽 90도"
+  },
+  "spinUpright": {
+    "message": "바로"
+  },
+  "ratioAuto": {
+    "message": "자동"
+  },
+  "detectNotReady": {
+    "message": "영상이 아직 준비되지 않았습니다"
+  },
+  "detectBlocked": {
+    "message": "이 사이트의 영상은 화면을 읽을 수 없습니다"
+  },
+  "detectBlank": {
+    "message": "화면이 계속 검게 나옵니다. 재생 중에 다시 시도해 주세요"
+  },
+  "detectTooLarge": {
+    "message": "띠가 너무 크게 잡혔습니다"
+  },
+  "detectNone": {
+    "message": "영상 안에 검은 띠가 없습니다"
+  },
+  "detectFound": {
+    "message": "그림 비율을 $1 로 잡았습니다."
+  },
+  "resetForNewVideo": {
+    "message": "새 영상이라 그림 비율과 회전을 처음으로 되돌렸습니다"
+  },
+  "popupNotYoutube": {
+    "message": "유튜브 영상 페이지에서 열어 주세요"
+  },
+  "popupNoScript": {
+    "message": "확장이 이 탭에는 아직 붙지 않았습니다. 설치나 업데이트 전부터 열려 있던 탭입니다. 새로고침해 주세요"
+  },
+  "popupNoVideo": {
+    "message": "영상을 재생하면 조작할 수 있습니다"
+  },
+  "popupSearching": {
+    "message": "영상을 찾는 중입니다"
+  },
+  "popupOpenPanel": {
+    "message": "재생기에서 패널 열기"
+  },
+  "popupReload": {
+    "message": "이 탭 새로고침"
+  },
+  "popupNote": {
+    "message": "조작은 재생기 안의 패널에서 합니다. 전체화면에서도 같은 패널을 씁니다."
+  },
+  "rotatedBy": {
+    "message": "$1도 회전"
+  },
+  "scaleTimes": {
+    "message": "$1배"
+  },
+  "cutSides": {
+    "message": "좌우 $1%"
+  },
+  "cutTopBottom": {
+    "message": "위아래 $1%"
+  },
+  "cutList": {
+    "message": "$1 잘림"
+  },
+  "noCut": {
+    "message": "잘리는 부분 없음"
+  },
+  "readingVideo": {
+    "message": "영상 정보를 읽는 중입니다"
+  },
+  "pipNoRotate": {
+    "message": "돌린 화면은 기본 PIP 로 옮길 수 없습니다"
+  },
+  "pipFailed": {
+    "message": "PIP 를 열지 못했습니다"
+  },
+  "videoNotFound": {
+    "message": "영상을 찾지 못했습니다"
+  },
+  "ratioTitle": {
+    "message": "그림 비율. 영상 안에 구워진 검은 띠를 잘라 냅니다"
+  },
+  "detect": {
+    "message": "감지"
+  },
+  "detectTitle": {
+    "message": "재생 중인 화면을 읽어 영상 속 검은 띠를 찾습니다"
+  },
+  "collapse": {
+    "message": "접기"
+  },
+  "windowFill": {
+    "message": "창 채움"
+  },
+  "windowFillTitle": {
+    "message": "재생기를 브라우저 창 가득 채웁니다 ($1)"
+  },
+  "pipTitle": {
+    "message": "돌린 방향 그대로 작은 창에 띄웁니다 ($1)"
+  },
+  "flipWheel": {
+    "message": "휠 반대"
+  },
+  "flipWheelTitle": {
+    "message": "가로 휠(또는 Shift + 휠)로 프레임을 넘길 때의 방향을 뒤집습니다"
+  },
+  "pictureRatio": {
+    "message": "그림 비율"
+  },
+  "strideLabel": {
+    "message": "휠 한 칸"
+  },
+  "strideTitle": {
+    "message": "가로 휠(또는 Shift + 휠) 한 칸에 넘길 프레임 수"
+  },
+  "framesUnit": {
+    "message": "프레임"
+  },
+  "visibleArea": {
+    "message": "보이는 영역"
+  },
+  "picture": {
+    "message": "그림"
+  },
+  "pictureTitle": {
+    "message": "영상 그림을 미리보기에 그립니다. 끄면 도식만 남고 아무것도 그리지 않습니다"
+  },
+  "center": {
+    "message": "가운데"
+  },
+  "centerTitle": {
+    "message": "가운데로 되돌립니다"
+  },
+  "viewTitle": {
+    "message": "밝은 상자를 끌어 옮기세요. 두 번 누르면 가운데로 돌아갑니다"
+  },
+  "previewBlocked": {
+    "message": "이 영상은 그림을 읽을 수 없습니다"
+  },
+  "openNamed": {
+    "message": "$1 열기"
+  },
+  "hideControlsNamed": {
+    "message": "$1 조작판 감추기"
+  },
+  "showControlsNamed": {
+    "message": "$1 조작판 띄우기"
+  },
+  "noteRotatedFit": {
+    "message": "돌린 그림이 상자 안에 들어오도록 맞춰 놓았습니다."
+  },
+  "noteNoRoom": {
+    "message": "고른 비율로는 더 확대할 여지가 없습니다."
+  },
+  "noteAlreadyFills": {
+    "message": "이 영상은 이미 그 방향을 채우고 있습니다. 영상 안에 검은 띠가 구워져 있다면 감지를 눌러 보세요."
+  },
+  "toastWindowFillOn": {
+    "message": "창 가득 채움"
+  },
+  "toastWindowFillOff": {
+    "message": "창 채움 해제"
+  },
+  "hintTogglePanel": {
+    "message": "패널 펼치기 / 접기"
+  },
+  "hintToggleShown": {
+    "message": "조작판 띄우기 / 감추기"
+  },
+  "hintCycleFit": {
+    "message": "채움 방식 바꾸기"
+  },
+  "hintSpin": {
+    "message": "회전 바꾸기"
+  },
+  "hintReset": {
+    "message": "되돌리기"
+  },
+  "hintWindowFill": {
+    "message": "창 가득 채우기"
+  },
+  "hintPip": {
+    "message": "PIP"
+  },
+  "cmdCycleFit": {
+    "message": "채움 방식 바꾸기"
+  },
+  "cmdResetFit": {
+    "message": "원래 크기로 되돌리기"
+  }
+}

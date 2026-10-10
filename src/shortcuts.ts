@@ -47,21 +47,23 @@ export const PAGE_KEYS = {
 
 export type PageAction = keyof typeof PAGE_KEYS;
 
-/** 페이지 안 패널이 아무것도 걸려 있지 않을 때 늘어놓는 안내. 순서대로 보인다. */
+/** 페이지 안 패널이 아무것도 걸려 있지 않을 때 늘어놓는 안내. 순서대로 보인다.
+    둘째 값은 글이 아니라 messages.json 의 열쇠다. 이 파일은 다른 파일을 import 하지
+    않으므로 글로 바꾸는 일은 쓰는 쪽이 한다. */
 export const PANEL_HINTS: ReadonlyArray<readonly [PageAction, string]> = [
-  ["cycleFit", "채움 방식 바꾸기"],
-  ["spin", "회전 바꾸기"]
+  ["cycleFit", "hintCycleFit"],
+  ["spin", "hintSpin"]
 ];
 
 /** 확장 팝업 아래쪽에 늘어놓는 안내. 순서대로 보인다. */
 export const FOOTER_HINTS: ReadonlyArray<readonly [PageAction, string]> = [
-  ["togglePanel", "패널 펼치기 / 접기"],
-  ["toggleShown", "조작판 띄우기 / 감추기"],
-  ["cycleFit", "채움 방식 바꾸기"],
-  ["spin", "회전 바꾸기"],
-  ["reset", "되돌리기"],
-  ["windowFill", "창 가득 채우기"],
-  ["pip", "PIP"]
+  ["togglePanel", "hintTogglePanel"],
+  ["toggleShown", "hintToggleShown"],
+  ["cycleFit", "hintCycleFit"],
+  ["spin", "hintSpin"],
+  ["reset", "hintReset"],
+  ["windowFill", "hintWindowFill"],
+  ["pip", "hintPip"]
 ];
 
 /* ---------------------------------------------------------------
@@ -113,8 +115,8 @@ export const FRAME_WHEEL = {
    --------------------------------------------------------------- */
 
 export const BROWSER_COMMANDS = {
-  "cycle-fit": { suggested: "Alt+Shift+8", description: "채움 방식 바꾸기", message: "cycleFit" },
-  "reset-fit": { suggested: "Alt+Shift+9", description: "원래 크기로 되돌리기", message: "resetFit" }
+  "cycle-fit": { suggested: "Alt+Shift+8", descriptionKey: "cmdCycleFit", message: "cycleFit" },
+  "reset-fit": { suggested: "Alt+Shift+9", descriptionKey: "cmdResetFit", message: "resetFit" }
 } as const;
 
 export type BrowserCommand = keyof typeof BROWSER_COMMANDS;
@@ -146,7 +148,7 @@ export function keyLabel(combo: KeyCombo): string {
 function codeLabel(code: string): string {
   if (code.startsWith("Digit")) return code.slice(5);
   if (code.startsWith("Key")) return code.slice(3);
-  if (code.startsWith("Numpad")) return "숫자판 " + code.slice(6);
+  if (code.startsWith("Numpad")) return "Num " + code.slice(6);
   return code;
 }
 

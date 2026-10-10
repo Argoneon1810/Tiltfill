@@ -7,16 +7,19 @@
  * 두 벌이라 패널만 고쳐 가는 동안 팝업이 뒤처졌고, 그래서 걷어냈다.
  */
 import type { Message, Reply } from "./types";
+import { t } from "./i18n";
 import { FOOTER_HINTS, pageKey } from "./shortcuts";
 
 function must<T extends HTMLElement = HTMLElement>(id: string): T {
   const found = document.getElementById(id);
-  if (!found) throw new Error("popup.html 에 #" + id + " 가 없습니다");
+  if (!found) throw new Error("popup.html has no #" + id);
   return found as T;
 }
 
 const el = {
+  name: must("name"),
   version: must("version"),
+  note: must("note"),
   host: must("host"),
   readout: must("readout"),
   open: must<HTMLButtonElement>("open"),
@@ -24,14 +27,20 @@ const el = {
   foot: must("foot")
 };
 
+document.documentElement.lang = chrome.i18n.getUILanguage();
+el.name.textContent = t("extName");
 el.version.textContent = chrome.runtime.getManifest().version;
+el.readout.textContent = t("popupSearching");
+el.open.textContent = t("popupOpenPanel");
+el.reload.textContent = t("popupReload");
+el.note.textContent = t("popupNote");
 
 /* 단축키 안내 — 글은 shortcuts.ts 의 표에서 만든다 ---------------- */
 
 for (const [action, label] of FOOTER_HINTS) {
   const item = document.createElement("li");
   const what = document.createElement("span");
-  what.textContent = label;
+  what.textContent = t(label);
   const key = document.createElement("kbd");
   key.textContent = pageKey(action);
   item.appendChild(what);
@@ -49,9 +58,9 @@ for (const [action, label] of FOOTER_HINTS) {
 type Missing = "site" | "script" | "video";
 
 const MISSING_TEXT: Record<Missing, string> = {
-  site: "유튜브 영상 페이지에서 열어 주세요",
-  script: "확장이 이 탭에는 아직 붙지 않았습니다. 설치나 업데이트 전부터 열려 있던 탭입니다. 새로고침해 주세요",
-  video: "영상을 재생하면 조작할 수 있습니다"
+  site: t("popupNotYoutube"),
+  script: t("popupNoScript"),
+  video: t("popupNoVideo")
 };
 
 let missing: Missing | null = null;
@@ -86,15 +95,15 @@ async function send(payload: Message): Promise<Reply | null> {
 function describe(reply: Reply): string {
   const bits = [reply.label];
   const r = reply.report;
-  if (reply.state.rotation) bits.push(reply.state.rotation + "도 회전");
+  if (reply.state.rotation) bits.push(t("rotatedBy", reply.state.rotation));
   if (r) {
-    bits.push(r.scale.toFixed(2) + "배");
+    bits.push(t("scaleTimes", r.scale.toFixed(2)));
     const cutX = Math.round(r.cutX * 100);
     const cutY = Math.round(r.cutY * 100);
     const cuts = [];
-    if (cutX > 0) cuts.push("좌우 " + cutX + "%");
-    if (cutY > 0) cuts.push("위아래 " + cutY + "%");
-    if (cuts.length) bits.push(cuts.join(", ") + " 잘림");
+    if (cutX > 0) cuts.push(t("cutSides", cutX));
+    if (cutY > 0) cuts.push(t("cutTopBottom", cutY));
+    if (cuts.length) bits.push(t("cutList", cuts.join(", ")));
   }
   return bits.join(" · ");
 }

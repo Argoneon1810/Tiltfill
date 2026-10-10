@@ -11,6 +11,7 @@
 import type {
   DetectResult, FitMode, FitState, Message, Report, Reply, Rotation, Snapshot
 } from "./types";
+import { t } from "./i18n";
 
 export interface Crop { sx: number; sy: number; sw: number; sh: number }
 
@@ -45,14 +46,14 @@ export interface Core {
 export function createCore(): Core {
   const FIT_ORDER: readonly FitMode[] = ["off", "vertical", "horizontal", "both"];
   const FIT_LABEL: Record<FitMode, string> = {
-    off: "원래 크기",
-    vertical: "상하 채움",
-    horizontal: "좌우 채움",
-    both: "꽉 채움"
+    off: t("fitOff"),
+    vertical: t("fitVertical"),
+    horizontal: t("fitHorizontal"),
+    both: t("fitBoth")
   };
 
   const ROTATIONS: readonly Rotation[] = [0, 90, 180, 270];
-  const ROT_LABEL: Record<Rotation, string> = { 0: "바로", 90: "오른쪽 90도", 180: "180도", 270: "왼쪽 90도" };
+  const ROT_LABEL: Record<Rotation, string> = { 0: t("rot0"), 90: t("rot90"), 180: t("rot180"), 270: t("rot270") };
 
   const state: FitState = { fit: "off", sourceRatio: 0, panX: 0, panY: 0, rotation: 0 };
   const STORE_KEY = "site:" + location.hostname;
@@ -434,15 +435,15 @@ export function createCore(): Core {
 
   // 어두운 장면을 검은 띠로 착각하지 않도록 여러 번 재서 가장 작은 값을 쓴다.
   function detect(done: (result: DetectResult) => void): void {
-    if (!video || !video.videoWidth) { done({ error: "영상이 아직 준비되지 않았습니다" }); return; }
+    if (!video || !video.videoWidth) { done({ error: t("detectNotReady") }); return; }
     const shots: Bars[] = [];
     let n = 0;
     const tick = () => {
       const s = sampleBars();
-      if (s && "blocked" in s) { done({ error: "이 사이트의 영상은 화면을 읽을 수 없습니다" }); return; }
+      if (s && "blocked" in s) { done({ error: t("detectBlocked") }); return; }
       if (s && !("blank" in s)) shots.push(s);
       if (++n < 5) { setTimeout(tick, 350); return; }
-      if (!shots.length) { done({ error: "화면이 계속 검게 나옵니다. 재생 중에 다시 시도해 주세요" }); return; }
+      if (!shots.length) { done({ error: t("detectBlank") }); return; }
       const bars: Bars = {
         top: Math.min(...shots.map((s) => s.top)),
         bottom: Math.min(...shots.map((s) => s.bottom)),
@@ -452,12 +453,12 @@ export function createCore(): Core {
       for (const k of Object.keys(bars) as (keyof Bars)[]) if (bars[k] < 0.012) bars[k] = 0;
       const cw = 1 - bars.left - bars.right;
       const ch = 1 - bars.top - bars.bottom;
-      if (cw < 0.3 || ch < 0.3) { done({ error: "띠가 너무 크게 잡혔습니다" }); return; }
+      if (cw < 0.3 || ch < 0.3) { done({ error: t("detectTooLarge") }); return; }
       if (bars.top + bars.bottom === 0 && bars.left + bars.right === 0) {
-        done({ error: "영상 안에 검은 띠가 없습니다", ratio: 0 });
+        done({ error: t("detectNone"), ratio: 0 });
         return;
       }
-      if (!video) { done({ error: "영상이 아직 준비되지 않았습니다" }); return; }
+      if (!video) { done({ error: t("detectNotReady") }); return; }
       const base = video.videoWidth / video.videoHeight;
       const ratio = snapRatio(base * (cw / ch));
       setState({ sourceRatio: ratio });
@@ -519,7 +520,7 @@ export function createCore(): Core {
     lastVideoKey = key;
     if (!state.sourceRatio && !state.rotation && !state.panX && !state.panY) return;
     setState({ sourceRatio: 0, panX: 0, panY: 0, rotation: 0 });
-    FZ.toast?.("새 영상이라 그림 비율과 회전을 처음으로 되돌렸습니다");
+    FZ.toast?.(t("resetForNewVideo"));
   }
 
   function cycle(): string {

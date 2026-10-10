@@ -1,0 +1,221 @@
+{
+  "extName": {
+    "message": "Fill Zoom"
+  },
+  "extDescription": {
+    "message": "Crops the black margins of YouTube videos to fill the player. Also rotates the picture, keeps the rotation in picture-in-picture, fills the browser window, and steps frame by frame."
+  },
+  "fitOff": {
+    "message": "Original"
+  },
+  "fitVertical": {
+    "message": "Fill height"
+  },
+  "fitHorizontal": {
+    "message": "Fill width"
+  },
+  "fitBoth": {
+    "message": "Fill both"
+  },
+  "rot0": {
+    "message": "Upright"
+  },
+  "rot90": {
+    "message": "90° right"
+  },
+  "rot180": {
+    "message": "180°"
+  },
+  "rot270": {
+    "message": "90° left"
+  },
+  "spinUpright": {
+    "message": "0°"
+  },
+  "ratioAuto": {
+    "message": "Auto"
+  },
+  "detectNotReady": {
+    "message": "The video is not ready yet"
+  },
+  "detectBlocked": {
+    "message": "The picture of this video cannot be read"
+  },
+  "detectBlank": {
+    "message": "The picture stays black. Try again while the video is playing"
+  },
+  "detectTooLarge": {
+    "message": "The detected bars are too large to be right"
+  },
+  "detectNone": {
+    "message": "There are no black bars inside this video"
+  },
+  "detectFound": {
+    "message": "Picture ratio set to $1."
+  },
+  "resetForNewVideo": {
+    "message": "New video: picture ratio and rotation were reset"
+  },
+  "popupNotYoutube": {
+    "message": "Open this on a YouTube video page"
+  },
+  "popupNoScript": {
+    "message": "The extension is not attached to this tab yet. The tab was already open when it was installed or updated. Please reload the tab"
+  },
+  "popupNoVideo": {
+    "message": "Play a video to use the controls"
+  },
+  "popupSearching": {
+    "message": "Looking for a video…"
+  },
+  "popupOpenPanel": {
+    "message": "Open the panel in the player"
+  },
+  "popupReload": {
+    "message": "Reload this tab"
+  },
+  "popupNote": {
+    "message": "All controls are in the panel inside the player. The same panel works in fullscreen."
+  },
+  "rotatedBy": {
+    "message": "rotated $1°"
+  },
+  "scaleTimes": {
+    "message": "$1×"
+  },
+  "cutSides": {
+    "message": "sides $1%"
+  },
+  "cutTopBottom": {
+    "message": "top and bottom $1%"
+  },
+  "cutList": {
+    "message": "$1 cropped"
+  },
+  "noCut": {
+    "message": "nothing cropped"
+  },
+  "readingVideo": {
+    "message": "Reading the video…"
+  },
+  "pipNoRotate": {
+    "message": "A rotated picture cannot be shown in the built-in picture-in-picture"
+  },
+  "pipFailed": {
+    "message": "Could not open picture-in-picture"
+  },
+  "videoNotFound": {
+    "message": "No video found"
+  },
+  "ratioTitle": {
+    "message": "Picture ratio. Crops black bars baked into the video"
+  },
+  "detect": {
+    "message": "Detect"
+  },
+  "detectTitle": {
+    "message": "Reads the playing picture to find black bars inside the video"
+  },
+  "collapse": {
+    "message": "Collapse"
+  },
+  "windowFill": {
+    "message": "Fill window"
+  },
+  "windowFillTitle": {
+    "message": "Makes the player fill the browser window ($1)"
+  },
+  "pipTitle": {
+    "message": "Opens a small always-on-top window that keeps the rotation ($1)"
+  },
+  "flipWheel": {
+    "message": "Flip wheel"
+  },
+  "flipWheelTitle": {
+    "message": "Reverses the direction of frame stepping with the horizontal wheel (or Shift + wheel)"
+  },
+  "pictureRatio": {
+    "message": "Picture ratio"
+  },
+  "strideLabel": {
+    "message": "Wheel step"
+  },
+  "strideTitle": {
+    "message": "Frames to step per notch of the horizontal wheel (or Shift + wheel)"
+  },
+  "framesUnit": {
+    "message": "frames"
+  },
+  "visibleArea": {
+    "message": "Visible area"
+  },
+  "picture": {
+    "message": "Picture"
+  },
+  "pictureTitle": {
+    "message": "Draws the video into the preview. When off, only the outline remains and nothing is drawn"
+  },
+  "center": {
+    "message": "Center"
+  },
+  "centerTitle": {
+    "message": "Back to the center"
+  },
+  "viewTitle": {
+    "message": "Drag the bright box. Double-click to center it"
+  },
+  "previewBlocked": {
+    "message": "The picture of this video cannot be read"
+  },
+  "openNamed": {
+    "message": "Open $1"
+  },
+  "hideControlsNamed": {
+    "message": "Hide the $1 controls"
+  },
+  "showControlsNamed": {
+    "message": "Show the $1 controls"
+  },
+  "noteRotatedFit": {
+    "message": "The rotated picture is scaled to fit inside the player."
+  },
+  "noteNoRoom": {
+    "message": "With the chosen ratio there is no room left to enlarge."
+  },
+  "noteAlreadyFills": {
+    "message": "This video already fills that direction. If black bars are baked into the video, try Detect."
+  },
+  "toastWindowFillOn": {
+    "message": "Filling the window"
+  },
+  "toastWindowFillOff": {
+    "message": "Window fill off"
+  },
+  "hintTogglePanel": {
+    "message": "Expand or collapse the panel"
+  },
+  "hintToggleShown": {
+    "message": "Show or hide the controls"
+  },
+  "hintCycleFit": {
+    "message": "Change the fit mode"
+  },
+  "hintSpin": {
+    "message": "Rotate"
+  },
+  "hintReset": {
+    "message": "Reset"
+  },
+  "hintWindowFill": {
+    "message": "Fill the window"
+  },
+  "hintPip": {
+    "message": "Picture-in-picture"
+  },
+  "cmdCycleFit": {
+    "message": "Change the fit mode"
+  },
+  "cmdResetFit": {
+    "message": "Reset to the original size"
+  }
+}
