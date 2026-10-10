@@ -476,7 +476,8 @@ export function createCore(): Core {
   function save(): void {
     clearTimeout(saveTimer);
     saveTimer = window.setTimeout(() => {
-      try { chrome.storage.local.set({ [STORE_KEY]: { ...state } }); } catch (e) { /* 무시 */ }
+      // 기억하는 것은 채움 방식뿐이다. 나머지는 영상마다 다르다 (아래 checkVideo).
+      try { chrome.storage.local.set({ [STORE_KEY]: { fit: state.fit } }); } catch (e) { /* 무시 */ }
     }, 300);
   }
 
@@ -494,6 +495,31 @@ export function createCore(): Core {
     if (on) { clearTransform(); signature = ""; }
     away = on;
     if (!on) schedule(true);
+  }
+
+  /* 그림 비율, 회전, 보이는 영역은 그 영상에만 맞는 값이다. 한 영화에서 잡은 2.39
+     비율이나 90도 회전이 다음 영상에 그대로 걸리면 화면이 엉뚱하게 잘린다. 영상이
+     바뀌면 이 셋을 처음으로 되돌린다. 채움 방식은 취향이라 그대로 둔다.
+
+     유튜브는 페이지를 갈아 끼우고 video 요소도 그대로 쓰므로, 주소의 영상 ID 로
+     구분한다. 광고는 주소가 같아서 되돌리지 않는다. */
+  function videoKey(): string {
+    try {
+      const url = new URL(location.href);
+      return url.searchParams.get("v") || url.pathname;
+    } catch (e) {
+      return location.pathname;
+    }
+  }
+  let lastVideoKey = videoKey();
+
+  function checkVideo(): void {
+    const key = videoKey();
+    if (key === lastVideoKey) return;
+    lastVideoKey = key;
+    if (!state.sourceRatio && !state.rotation && !state.panX && !state.panY) return;
+    setState({ sourceRatio: 0, panX: 0, panY: 0, rotation: 0 });
+    FZ.toast?.("새 영상이라 그림 비율과 회전을 처음으로 되돌렸습니다");
   }
 
   function cycle(): string {
@@ -610,7 +636,9 @@ export function createCore(): Core {
   try {
     chrome.storage.local.get(STORE_KEY, (obj) => {
       const saved = obj && obj[STORE_KEY];
-      if (saved && typeof saved === "object") Object.assign(state, saved as Partial<FitState>);
+      // 예전 판은 비율과 회전까지 저장했다. 그 값은 읽지 않는다.
+      const fit = saved && typeof saved === "object" ? (saved as Partial<FitState>).fit : undefined;
+      if (fit && FIT_ORDER.includes(fit)) state.fit = fit;
       attach();
       schedule(true);
       notify();
@@ -632,7 +660,10 @@ export function createCore(): Core {
   document.addEventListener("fullscreenchange", onFullscreenChange);
   document.addEventListener("webkitfullscreenchange", onFullscreenChange);
 
+  document.addEventListener("yt-navigate-finish", checkVideo);
+
   setInterval(() => {
+    checkVideo();
     if (!video || !video.isConnected) attach();
     else schedule(false);
   }, 1000);
