@@ -7,7 +7,6 @@
 
 1. `main` 을 GitHub 에 푸시합니다. 개인정보처리방침의 주소가 `main` 의 파일을 가리킵니다.
 2. `npm run package` 를 돌립니다. `release/tiltfill-<버전>.zip` 이 올릴 파일입니다.
-3. 스크린샷을 찍습니다. 맨 아래 "스크린샷" 절에 찍는 법이 있습니다.
 
 ## 패키지 탭
 
@@ -40,6 +39,8 @@ After installing, reload any video tabs that were already open.
 
 Source code (GPL-3.0): https://github.com/Argoneon1810/Tiltfill
 
+Screenshots show "Charge" (CC BY 4.0) by Blender Foundation | studio.blender.org, cropped by this extension.
+
 YouTube is a trademark of Google LLC. Tiltfill is an independent project and is not affiliated with, sponsored by, or endorsed by Google LLC or YouTube.
 ```
 
@@ -62,6 +63,8 @@ Tiltfill 은 유튜브 영상을 돌리고, 검은 띠를 잘라 내 그림이 �
 설치한 뒤에는 이미 열려 있던 영상 탭을 새로고침해 주세요.
 
 소스 코드 (GPL-3.0): https://github.com/Argoneon1810/Tiltfill
+
+스크린샷의 영상은 Blender Foundation 의 "Charge" (CC BY 4.0, studio.blender.org) 이며, 이 확장으로 잘라 낸 모습입니다.
 
 YouTube 는 Google LLC 의 상표입니다. Tiltfill 은 독립 프로젝트이며 Google LLC 나 YouTube 와 제휴하거나 그 후원, 보증을 받지 않았습니다.
 ```
@@ -127,25 +130,21 @@ No login or account is needed.
 
 ## 스크린샷
 
-1280×800 픽셀로 1장에서 5장까지 올립니다. 찍는 법은 이렇습니다.
+`docs/store/screenshots/` 에 1280×800 으로 세 장을 찍어 두었습니다. 순서대로 올립니다.
 
-1. 유튜브 영상 페이지에서 `F12` 로 개발자 도구를 엽니다.
-2. `Ctrl+Shift+M` 으로 기기 툴바를 켜고, 위쪽의 크기를 `1280` × `800` 으로 적습니다. 배율은 100% 로 둡니다.
-3. 찍을 화면을 만든 뒤, 기기 툴바 오른쪽의 `⋮` 에서 **Capture screenshot** 을 누릅니다.
+| 파일 | 화면 |
+| --- | --- |
+| `1-before.png` | 채우기 전. 위아래에 검은 띠가 있습니다. |
+| `2-after.png` | 같은 장면에서 Fill height 를 고른 뒤 |
+| `3-panel.png` | 패널을 펼친 모습. 잘리는 부분을 보여 주는 미리보기가 함께 보입니다. |
 
-남의 영상이 크게 담기지 않게 합니다. 영상은 Blender Studio 의 **Charge** 를 권합니다. CC BY 4.0 이고, 2.39:1 영상이라
-띠가 뚜렷합니다. 추천 영상 목록(남의 썸네일)이 화면에 들어오지 않도록 극장 모드나 창 채움 상태에서 찍습니다.
+영상은 Blender Studio 의 **Charge** 입니다. CC BY 4.0 이라 출처만 밝히면 쓸 수 있습니다. 그래서 상세 설명
+끝에 출처 줄을 넣어 두었습니다. 재생기를 창에 가득 채운 상태에서 찍어, 유튜브의 다른 영상 썸네일이나
+로고가 들어가지 않았습니다. 화면의 글은 영어입니다.
 
-| 순서 | 화면 | 만드는 법 |
-| --- | --- | --- |
-| 1 | 채우기 전 | 극장 모드, 원래 크기. 위아래에 띠가 보이는 상태 |
-| 2 | 채운 뒤 | 같은 장면에서 상하 채움. 패널을 펼쳐 미리보기 상자가 보이게 |
-| 3 | 회전 | 세로로 찍혀 눕혀 올라온 영상을 돌린 모습. 직접 찍은 영상이 가장 안전합니다. |
-| 4 | PIP | 돌린 영상이 작은 창에 뜬 모습 |
-| 5 | 창 채움 | 재생기가 창을 가득 채운 모습 |
+회전과 PIP 를 보여 주는 장면은 없습니다. 회전은 눕혀서 올라온 영상이 있어야 뜻이 통하고, PIP 창은 페이지
+밖에 뜨는 창이라 같은 방식으로 찍히지 않습니다. 더 넣고 싶으면 직접 찍어 보태면 됩니다. 스토어는 다섯
+장까지 받습니다.
 
-Charge 를 썼다면 상세 설명 맨 끝에 이 줄을 더합니다.
-
-```
-Screenshots show "Charge" (CC BY 4.0) by Blender Foundation | studio.blender.org, cropped and rotated by this extension.
-```
+다시 찍으려면 유튜브 영상 페이지에서 `F12`, `Ctrl+Shift+M` 으로 기기 툴바를 켜고 크기를 `1280` × `800` 으로
+맞춘 뒤, 기기 툴바 오른쪽의 `⋮` 에서 **Capture screenshot** 을 누릅니다.
