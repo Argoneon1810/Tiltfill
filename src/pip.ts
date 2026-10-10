@@ -16,7 +16,6 @@
  * 바로 부르는 toggle() 만 이 조건을 채운다.
  */
 import type { Core } from "./core";
-import { PAGE_KEYS, matches } from "./shortcuts";
 
 interface DocumentPip {
   requestWindow(options?: { width?: number; height?: number }): Promise<Window>;
@@ -46,7 +45,10 @@ video{position:absolute !important;left:50% !important;top:50% !important;
 .cc span{padding:.08em .35em;background:rgba(8,8,8,.75);white-space:pre-wrap;}
 `;
 
-export function createPip(FZ: Core, onChange: () => void): Pip {
+/** onPageKey 는 페이지 단축키를 처리하고, 처리했으면 true 를 돌려준다. */
+export function createPip(
+  FZ: Core, onChange: () => void, onPageKey: (event: KeyboardEvent) => boolean
+): Pip {
   let win: Window | null = null;
 
   function isOpen(): boolean { return !!win || !!document.pictureInPictureElement; }
@@ -175,9 +177,10 @@ export function createPip(FZ: Core, onChange: () => void): Pip {
 
     const playPause = () => { if (video.paused) video.play().catch(() => {}); else video.pause(); };
     stage.addEventListener("click", playPause);
+    // 이 창은 다른 문서라서 페이지에 걸어 둔 키 처리가 닿지 않는다. 같은 처리로 넘긴다.
     doc.addEventListener("keydown", (event) => {
-      if (matches(event, PAGE_KEYS.pip)) w.close();
-      else if (event.code === "Space" || event.code === "KeyK") playPause();
+      if (onPageKey(event)) return;
+      if (event.code === "Space" || event.code === "KeyK") playPause();
       else if (event.code === "ArrowLeft") video.currentTime = Math.max(0, video.currentTime - SEEK_S);
       else if (event.code === "ArrowRight") video.currentTime = video.currentTime + SEEK_S;
       else return;

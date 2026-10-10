@@ -96,7 +96,7 @@ export function mountUI(FZ: Core): void {
   let wide = false;      // 재생기를 창 가득 채울지 (저장한다)
 
   const winFill = createWindowFill();
-  const pip = createPip(FZ, () => paint(FZ.snapshot()));
+  const pip = createPip(FZ, () => paint(FZ.snapshot()), (event) => handleKey(event));
 
   let previewTimer = 0;
   let previewStamp = "";
@@ -948,13 +948,19 @@ export function mountUI(FZ: Core): void {
   };
   const KEYED = Object.keys(PAGE_KEYS) as PageAction[];
 
-  document.addEventListener("keydown", (event) => {
-    if (typing(event.target)) return;
+  // PIP 창의 키 입력도 이리로 온다. 처리했으면 true 를 돌려준다.
+  function handleKey(event: KeyboardEvent): boolean {
     const action = KEYED.find((a) => matches(event, PAGE_KEYS[a]));
-    if (!action) return;
+    if (!action) return false;
     event.preventDefault();
     event.stopPropagation();
     ACTIONS[action]();
+    return true;
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (typing(event.target)) return;
+    handleKey(event);
   }, true);
 
   /* ---------------------------------------------------------------
