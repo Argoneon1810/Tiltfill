@@ -86,6 +86,7 @@ export function mountUI(FZ: Core): void {
   let expanded = false;  // 본 패널을 펼쳤는지 (저장하지 않는다)
   let wide = false;      // 재생기를 창 가득 채울지 (저장한다)
   let flip = false;      // 프레임 넘기기의 휠 방향을 뒤집을지 (저장한다)
+  let wideActive = false; // 창 채움이 지금 실제로 걸려 있는지
   let stride = 1;        // 휠 한 칸에 넘길 프레임 수 (저장한다)
   const STRIDE_MAX = 600;
 
@@ -137,6 +138,9 @@ export function mountUI(FZ: Core): void {
   font:400 13px/1.5 system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
   box-shadow:0 12px 32px rgba(0,0,0,.5);text-align:left;}
 .fz-panel *{box-sizing:border-box;}
+/* 재생기가 패널보다 낮으면 패널을 재생기 밖(문서 본문)으로 꺼내 창 기준으로 띄운다.
+   자리와 높이 상한은 placeFloat 가 인라인으로 넣는다. */
+.fz-panel.fz-float{position:fixed;right:auto;z-index:2147483646;}
 .fz-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .fz-title{font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;}
 .fz-close{background:none;border:0;color:#A29BB0;font-size:16px;line-height:1;cursor:pointer;padding:2px 4px;}
@@ -782,7 +786,7 @@ export function mountUI(FZ: Core): void {
   }
 
   function sync() {
-    winFill.sync(wide);
+    wideActive = winFill.sync(wide);
     if (playerButton) {
       playerButton.classList.toggle("fz-off", !shown);
       const name = t("extName");
@@ -805,7 +809,7 @@ export function mountUI(FZ: Core): void {
 
     if (expanded) {
       if (!panel) panel = build();
-      if (panel.parentElement !== l) l.appendChild(panel);
+      seatPanel(l);
     } else if (panel && panel.parentElement) {
       panel.remove();
     }
@@ -813,6 +817,65 @@ export function mountUI(FZ: Core): void {
     paint(FZ.snapshot());
     syncPreview();
   }
+
+  /* 패널 자리 정하기
+
+     패널은 보통 재생기를 덮는 층 안에 있다. 그런데 재생기가 패널보다 낮으면
+     패널이 재생기에 갇혀 일부가 잘리고, 그 안에서 굴려야 보인다. 그럴 때는 패널을
+     문서 본문으로 꺼내 창 기준으로 띄운다. 재생기 아래로 자연스럽게 내려온다.
+
+     전체화면과 창 채움에서는 꺼내지 않는다. 전체화면 요소 밖에 있는 것은 보이지
+     않고, 창 채움은 재생기 바깥을 모두 감춘다. 두 경우 모두 재생기가 충분히 높다. */
+  const PANEL_MARGIN = 76;  // 층 안에서 패널 위아래로 비워 두는 높이 (CSS 의 max-height 와 같다)
+  let floating = false;
+  let floatRaf = 0;
+
+  function seatPanel(l: HTMLDivElement): void {
+    if (!panel) return;
+    const box = FZ.getBox();
+    const allowed = !document.fullscreenElement && !wideActive && !!box && l.parentElement === box;
+    let next = false;
+    if (allowed && box) {
+      if (!floating && panel.parentElement !== l) l.appendChild(panel);
+      // 층 안에 있을 때는 넘쳤는지를, 밖에 있을 때는 돌아가면 넘칠지를 본다. 문턱은 같다.
+      next = floating
+        ? panel.scrollHeight + 2 + PANEL_MARGIN > box.clientHeight
+        : panel.scrollHeight > panel.clientHeight + 1;
+    }
+    floating = next;
+    panel.classList.toggle("fz-float", floating);
+    if (floating) {
+      if (panel.parentElement !== document.body) document.body.appendChild(panel);
+      placeFloat();
+    } else {
+      panel.style.removeProperty("left");
+      panel.style.removeProperty("top");
+      panel.style.removeProperty("max-height");
+      panel.style.removeProperty("visibility");
+      if (panel.parentElement !== l) l.appendChild(panel);
+    }
+  }
+
+  // 띄운 패널을 재생기의 오른쪽 위에 붙여 둔다. 페이지를 굴리면 재생기와 함께 움직인다.
+  function placeFloat(): void {
+    const box = FZ.getBox();
+    if (!panel || !floating || !box) return;
+    const rect = box.getBoundingClientRect();
+    const top = Math.max(8, rect.top + 60);
+    const s = panel.style;
+    s.left = Math.max(8, rect.right - 24 - panel.offsetWidth) + "px";
+    s.top = top + "px";
+    s.maxHeight = Math.max(120, window.innerHeight - top - 8) + "px";
+    // 재생기가 화면 위로 다 올라가면 패널만 남아 떠 있지 않게 한다.
+    s.visibility = rect.bottom < 120 ? "hidden" : "visible";
+  }
+
+  function onViewportMove(): void {
+    if (!floating || floatRaf) return;
+    floatRaf = requestAnimationFrame(() => { floatRaf = 0; placeFloat(); });
+  }
+  addEventListener("scroll", onViewportMove, { passive: true, capture: true });
+  addEventListener("resize", onViewportMove, { passive: true });
 
   function saveUI() {
     try { chrome.storage.local.set({ [UI_KEY]: { shown, pic: picture, wide, flip, stride } }); } catch (e) { /* 무시 */ }
