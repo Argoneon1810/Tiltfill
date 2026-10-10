@@ -38,7 +38,7 @@ export const PAGE_KEYS = {
   toggleShown: { code: "Digit2", ...ALL_THREE },  // 조작판 자체를 띄우기 / 감추기
   cycleFit:    { code: "Digit3", ...ALL_THREE },  // 채움 방식 차례로 바꾸기
   spin:        { code: "Digit4", ...ALL_THREE },  // 회전 차례로 바꾸기
-  reset:       { code: "Digit5", ...ALL_THREE },  // 채움과 회전 되돌리기
+  reset:       { code: "Digit5", ...ALL_THREE },  // 채움, 회전, 창 채움 되돌리기
   windowFill:  { code: "Digit6", ...ALL_THREE },  // 창 가득 채우기 켜기 / 끄기
   // 구글의 PIP 확장이 쓰던 키를 그대로 잇는다. 위의 기준에서 벗어난 유일한 키다.
   // 그 확장을 함께 켜 두면 같은 키를 두고 겹친다.

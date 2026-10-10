@@ -912,6 +912,9 @@ export function mountUI(FZ: Core): void {
 
   FZ.togglePanel = () => setExpanded(!expanded);
 
+  // 되돌리기는 어느 길로 오든(페이지 키, 브라우저 단축키, 팝업) core.reset 을 거친다.
+  FZ.afterReset = () => { if (wide) setWide(false); };
+
   // 콘솔에서 FZ.stats() 로 미리보기가 실제로 얼마나 쓰는지 볼 수 있다.
   // drawMs 가 0.1 언저리면 GPU 에서 끝난 것이고, 몇 ms 씩 나오면 캔버스가
   // 가속을 못 받아 원본 프레임을 CPU 로 끌어내리고 있다는 뜻이다.

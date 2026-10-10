@@ -34,9 +34,13 @@ export interface Core {
   getBox(): HTMLElement | null;
   getVideo(): HTMLVideoElement | null;
   refresh(): void;
+  /** video 요소를 다른 문서(PIP 창)로 내보낸 동안에는 손대지 않는다. */
+  setAway(on: boolean): void;
   /** ui 가 채워 넣는다. core 는 있으면 부르고 없으면 넘어간다. */
   toast?: (text: string) => void;
   togglePanel?: () => void;
+  /** 되돌리기가 ui 쪽 상태(창 채움)까지 풀게 한다. */
+  afterReset?: () => void;
   stats?: () => unknown;
 }
 
@@ -68,6 +72,7 @@ export function createCore(): Core {
   let appliedTransform = "";
   let appliedDX = 0;
   let appliedDY = 0;
+  let away = false;
   const listeners = new Set<(snap: Snapshot) => void>();
 
   /* =============================================================
@@ -215,6 +220,7 @@ export function createCore(): Core {
   }
 
   function apply(force: boolean): void {
+    if (away) return;
     if (!video || !video.isConnected) { attach(); if (!video) return; }
     if (!box || !box.isConnected) box = pickBox(video);
 
@@ -530,6 +536,15 @@ export function createCore(): Core {
     notify();
   }
 
+  // PIP 창으로 옮긴 video 에 이쪽 재생기 기준의 배율을 걸면 안 된다. 걸어 둔 것을
+  // 풀고 나서 내보내고, 돌아오면 다시 건다.
+  function setAway(on: boolean): void {
+    if (on === away) return;
+    if (on) { clearTransform(); signature = ""; }
+    away = on;
+    if (!on) schedule(true);
+  }
+
   function cycle(): string {
     const next = FIT_ORDER[(FIT_ORDER.indexOf(state.fit) + 1) % FIT_ORDER.length];
     setState({ fit: next });
@@ -538,6 +553,7 @@ export function createCore(): Core {
 
   function reset(): string {
     setState({ fit: "off", panX: 0, panY: 0, rotation: 0 });
+    FZ.afterReset?.();
     return FIT_LABEL.off;
   }
 
@@ -575,6 +591,8 @@ export function createCore(): Core {
   }
 
   function attach(): boolean {
+    // 나가 있는 video 는 이 문서에서 찾아지지 않는다. 잃어버린 것으로 치지 않는다.
+    if (away && video) return true;
     const v = pickVideo();
     if (!v) { if (video) detach(); return false; }
     if (v === video && video.isConnected) return true;
@@ -619,7 +637,8 @@ export function createCore(): Core {
     subscribe: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
     getBox: () => box,
     getVideo: () => video,
-    refresh: () => schedule(true)
+    refresh: () => schedule(true),
+    setAway
   };
 
   chrome.runtime.onMessage.addListener((msg: Message, _sender, sendResponse: (r: Reply | null) => void) => {
