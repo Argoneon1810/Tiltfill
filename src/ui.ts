@@ -1031,7 +1031,11 @@ export function mountUI(FZ: Core): void {
   }
 
   function watchAutohide() {
-    const el = document.querySelector<HTMLElement>(".html5-video-player");
+    // 지금 대상인 재생기를 본다. 문서의 첫 재생기를 보면, 쇼츠에서는 뒤에 숨어 있는 본
+    // 재생기를 보게 되어 단추가 계속 감춰진다. 쇼츠 재생기에는 따라 사라질 조작줄이
+    // 없으므로 단추를 늘 보여 준다.
+    const box = FZ.getBox();
+    const el = box && box.id === "movie_player" ? box : null;
     if (el !== playerEl) {
       if (autoObs) { autoObs.disconnect(); autoObs = null; }
       playerEl = el;
