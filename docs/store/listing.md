@@ -39,7 +39,7 @@ After installing, reload any video tabs that were already open.
 
 Source code (GPL-3.0): https://github.com/Argoneon1810/Tiltfill
 
-Screenshots show "Charge" (CC BY 4.0) by Blender Foundation | studio.blender.org, cropped by this extension.
+Screenshots show "Charge" (CC BY 4.0) by Blender Foundation | studio.blender.org, cropped by this extension, and "Visualizing NASA's Next Lunar Flyby" by NASA's Goddard Space Flight Center, rotated by this extension. Neither organization is affiliated with or endorses Tiltfill.
 
 YouTube is a trademark of Google LLC. Tiltfill is an independent project and is not affiliated with, sponsored by, or endorsed by Google LLC or YouTube.
 ```
@@ -64,7 +64,7 @@ Tiltfill 은 유튜브 영상을 돌리고, 검은 띠를 잘라 내 그림이 �
 
 소스 코드 (GPL-3.0): https://github.com/Argoneon1810/Tiltfill
 
-스크린샷의 영상은 Blender Foundation 의 "Charge" (CC BY 4.0, studio.blender.org) 이며, 이 확장으로 잘라 낸 모습입니다.
+스크린샷의 영상은 Blender Foundation 의 "Charge" (CC BY 4.0, studio.blender.org) 를 이 확장으로 잘라 낸 모습과, NASA 고다드 우주비행센터의 "Visualizing NASA's Next Lunar Flyby" 를 이 확장으로 돌린 모습입니다. 두 기관은 Tiltfill 과 관계가 없으며 Tiltfill 을 보증하지 않습니다.
 
 YouTube 는 Google LLC 의 상표입니다. Tiltfill 은 독립 프로젝트이며 Google LLC 나 YouTube 와 제휴하거나 그 후원, 보증을 받지 않았습니다.
 ```
@@ -130,13 +130,15 @@ No login or account is needed.
 
 ## 스크린샷
 
-`docs/store/screenshots/` 에 1280×800 으로 세 장을 찍어 두었습니다. 순서대로 올립니다.
+`docs/store/screenshots/` 에 1280×800 으로 다섯 장을 찍어 두었습니다. 순서대로 올립니다.
 
 | 파일 | 화면 |
 | --- | --- |
 | `1-before.png` | 채우기 전. 위아래에 검은 띠가 있습니다. |
 | `2-after.png` | 같은 장면에서 Fill height 를 고른 뒤 |
 | `3-panel.png` | 패널을 펼친 모습. 잘리는 부분을 보여 주는 미리보기가 함께 보입니다. |
+| `4-before-rotate.png` | 세로 영상을 돌리기 전. 좌우가 비어 있습니다. |
+| `5-rotated.png` | 같은 영상을 오른쪽으로 90도 돌린 뒤. 가로 화면을 채웁니다. 패널이 펼쳐져 있습니다. |
 
 **스크린샷의 검은 띠는 영상 파일 안에 있는 것이 아닙니다.** Charge 의 영상 파일은 1920×804 (2.39:1) 이고,
 파일에는 그림만 들어 있습니다. 스크린샷은 1280×800 (1.6:1) 입니다. 넓은 영상을 덜 넓은 화면에 넣으면
@@ -150,9 +152,19 @@ No login or account is needed.
 끝에 출처 줄을 넣어 두었습니다. 재생기를 창에 가득 채운 상태에서 찍어, 유튜브의 다른 영상 썸네일이나
 로고가 들어가지 않았습니다. 화면의 글은 영어입니다.
 
-회전과 PIP 를 보여 주는 장면은 없습니다. 회전은 눕혀서 올라온 영상이 있어야 뜻이 통하고, PIP 창은 페이지
-밖에 뜨는 창이라 같은 방식으로 찍히지 않습니다. 더 넣고 싶으면 직접 찍어 보태면 됩니다. 스토어는 다섯
-장까지 받습니다.
+**4번과 5번은 회전을 보여 주려고 일부러 세로 영상을 눕힌 것입니다.** 회전은 원래 눕혀서 올라온 영상을 바로
+세우는 데 쓰지만, 그런 영상 가운데 마음 놓고 쓸 수 있는 것을 찾지 못했습니다. 그래서 반대로 했습니다.
+제대로 올라온 세로 영상을 90도 돌려 가로 화면을 채우는 모습을 찍었습니다. 화면을 세로로 돌려 놓고 보는
+사람이 쓰는 방식이고, 회전이 무엇을 하는지는 그대로 전달됩니다.
+
+영상은 NASA Goddard 채널의 **Visualizing NASA's Next Lunar Flyby** 입니다. 고른 이유는 둘입니다.
+NASA 가 만든 영상과 그림은 저작권 보호를 받지 않아 출처만 밝히면 쓸 수 있습니다. 그리고 우주를 그린
+그림이라 위아래가 따로 없어서, 눕혀도 어색하지 않습니다. 사람이 나오지 않는 장면을 골랐습니다.
+NASA 의 이용 지침은 NASA 가 이 확장을 보증하는 것처럼 보이게 쓰는 것을 금합니다. 그래서 상세 설명에는
+출처만 적고 NASA 를 내세우지 않습니다. 이 지침은 제가 알고 있는 내용이고, 이번에 원문을 다시 확인하지는
+않았습니다. 올리기 전에 한 번 읽어 보는 편이 안전합니다: <https://www.nasa.gov/nasa-brand-center/images-and-media/>
+
+PIP 를 보여 주는 장면은 없습니다. PIP 창은 페이지 밖에 뜨는 창이라 같은 방식으로 찍히지 않습니다.
 
 다시 찍으려면 유튜브 영상 페이지에서 `F12`, `Ctrl+Shift+M` 으로 기기 툴바를 켜고 크기를 `1280` × `800` 으로
 맞춘 뒤, 기기 툴바 오른쪽의 `⋮` 에서 **Capture screenshot** 을 누릅니다.
