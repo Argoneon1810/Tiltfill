@@ -846,7 +846,7 @@ export function mountUI(FZ: Core): void {
       panel.style.removeProperty("left");
       panel.style.removeProperty("top");
       panel.style.removeProperty("max-height");
-      panel.style.removeProperty("visibility");
+      if (!settling) panel.style.removeProperty("visibility");
       if (panel.parentElement !== l) l.appendChild(panel);
     }
   }
@@ -865,15 +865,16 @@ export function mountUI(FZ: Core): void {
     s.visibility = rect.bottom < 120 ? "hidden" : "visible";
   }
 
-  // 전체화면에서 나오는 동안 재생기는 한 번에 제 크기로 가지 않는다. 지나치게 작아졌다가
-  // 돌아온다. 그 사이의 자리를 따라가면 패널이 두 번 튄다. 재생기의 자리가 몇 프레임
-  // 동안 그대로일 때까지 패널을 감춰 두었다가 한 번에 놓는다.
+  // 전체화면을 드나드는 동안 재생기는 한 번에 제 크기로 가지 않는다. 나올 때는 지나치게
+  // 작아졌다가 돌아온다. 그 사이의 자리를 따라가면 패널이 두 번 튄다. 재생기의 자리가
+  // 몇 프레임 동안 그대로일 때까지 패널을 감춰 두었다가 한 번에 놓는다.
+  // 들어갈 때는 패널이 재생기 안에 있어 튀지 않지만, 양쪽이 같게 보이도록 똑같이 한다.
   const SETTLE_FRAMES = 4;
   const SETTLE_MAX_MS = 700;
   let settling = false;
 
   function settleFloat(): void {
-    if (!panel || !floating || settling) return;
+    if (!panel || !expanded || settling) return;
     settling = true;
     panel.style.visibility = "hidden";
     const started = performance.now();
@@ -885,9 +886,10 @@ export function mountUI(FZ: Core): void {
       const now = r ? [r.left, r.top, r.width, r.height].map(Math.round).join("|") : "";
       same = now === last ? same + 1 : 0;
       last = now;
-      if (same >= SETTLE_FRAMES || performance.now() - started > SETTLE_MAX_MS || !floating) {
+      if (same >= SETTLE_FRAMES || performance.now() - started > SETTLE_MAX_MS || !panel) {
         settling = false;
-        placeFloat();
+        if (floating) placeFloat();
+        else if (panel) panel.style.removeProperty("visibility");
         return;
       }
       requestAnimationFrame(tick);
@@ -1143,7 +1145,7 @@ export function mountUI(FZ: Core): void {
   }
 
   document.addEventListener("fullscreenchange", reseat);
-  // reseat 가 패널을 밖으로 꺼낸 바로 뒤에 불린다.
+  // reseat 가 패널의 자리를 옮긴 바로 뒤에 불린다.
   document.addEventListener("fullscreenchange", settleFloat);
   // 유튜브는 페이지를 갈아 끼운다. 영상 페이지를 드나들 때 창 채움을 바로 맞춘다.
   document.addEventListener("yt-navigate-finish", reseat);
