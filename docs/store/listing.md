@@ -111,7 +111,7 @@ Runs a content script on YouTube pages to apply a CSS transform to the video ele
 | 원격 코드 | No, I am not using remote code | 소스에 `fetch`, `eval`, 바깥 스크립트가 없습니다. |
 | 데이터 유형 9개 | 모두 체크하지 않음 | 모으거나 보내는 것이 없습니다. 저장하는 것은 설정뿐입니다. |
 | 인증 3개 | 모두 체크 | 팔거나 넘기지 않고, 목적 밖에 쓰지 않고, 신용 평가에 쓰지 않습니다. |
-| 개인정보처리방침 URL | `https://github.com/Argoneon1810/Tiltfill/blob/main/PRIVACY.md` | `main` 을 푸시한 뒤에 열립니다. |
+| 개인정보처리방침 URL | `https://raw.githubusercontent.com/Argoneon1810/Tiltfill/main/PRIVACY.md` | GitHub 의 파일 보기 주소(`github.com/.../blob/...`)는 쓰지 않습니다. 로그인하지 않은 자동 요청을 GitHub 가 503 이나 429 로 막아서, 스토어가 "링크에 연결할 수 없습니다" 라고 거절합니다. 이 주소는 글만 내려 주는 주소라 막히지 않습니다. |
 
 심사에서 영상 화면을 읽는 것을 문제 삼으면 데이터 유형의 "Website content" 를 체크하고 다시 냅니다.
 방침에는 그 처리 방식이 이미 적혀 있습니다.
