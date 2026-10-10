@@ -17,6 +17,8 @@ export interface FrameStep {
   watch(): void;
   /** 굴리는 방향을 뒤집는다. 어느 쪽이 앞인지는 사람마다 다르게 느낀다. */
   setFlip(on: boolean): void;
+  /** 휠 한 칸에 넘길 프레임 수. */
+  setStride(frames: number): void;
 }
 
 const SAMPLES = 12;        // 프레임 길이를 구하는 데 쓰는 간격의 수
@@ -29,6 +31,7 @@ export function createFrameStep(FZ: Core): FrameStep {
   let key = "";
   let carry = 0;
   let flip = false;
+  let stride = 1;
 
   function keyOf(video: HTMLVideoElement): string {
     return video.currentSrc + "|" + video.videoWidth + "x" + video.videoHeight;
@@ -102,9 +105,14 @@ export function createFrameStep(FZ: Core): FrameStep {
     const count = Math.trunc(carry / FRAME_WHEEL.pixelsPerFrame);
     if (!count) return true;
     carry -= count * FRAME_WHEEL.pixelsPerFrame;
-    step(video, count);
+    step(video, count * stride);
     return true;
   }
 
-  return { onWheel, watch, setFlip: (on) => { flip = on; carry = 0; } };
+  return {
+    onWheel,
+    watch,
+    setFlip: (on) => { flip = on; carry = 0; },
+    setStride: (frames) => { stride = Math.max(1, Math.round(frames) || 1); }
+  };
 }

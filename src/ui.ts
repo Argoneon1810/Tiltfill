@@ -37,6 +37,7 @@ interface Parts {
   wideButton: HTMLButtonElement;
   pipButton: HTMLButtonElement;
   flipButton: HTMLButtonElement;
+  strideInput: HTMLInputElement;
   read: HTMLParagraphElement;
   ratio: HTMLSelectElement;
   viewRow: HTMLDivElement;
@@ -53,7 +54,7 @@ interface Parts {
   viewH?: number;
 }
 
-type UISaved = { shown?: boolean; pic?: boolean; wide?: boolean; flip?: boolean } | undefined;
+type UISaved = { shown?: boolean; pic?: boolean; wide?: boolean; flip?: boolean; stride?: number } | undefined;
 
 export function mountUI(FZ: Core): void {
   const UI_KEY = "ui:panel";
@@ -83,6 +84,8 @@ export function mountUI(FZ: Core): void {
   let expanded = false;  // 본 패널을 펼쳤는지 (저장하지 않는다)
   let wide = false;      // 재생기를 창 가득 채울지 (저장한다)
   let flip = false;      // 프레임 넘기기의 휠 방향을 뒤집을지 (저장한다)
+  let stride = 1;        // 휠 한 칸에 넘길 프레임 수 (저장한다)
+  const STRIDE_MAX = 600;
 
   const winFill = createWindowFill();
   const frames = createFrameStep(FZ);
@@ -152,6 +155,9 @@ export function mountUI(FZ: Core): void {
 .fz-label{flex:0 0 74px;font-size:11.5px;color:#A29BB0;}
 .fz-panel select{flex:1;min-width:0;padding:5px 6px;background:#1E1C26;color:#EFEBF4;
   border:1px solid #322E3D;border-radius:4px;font:inherit;font-size:12px;}
+.fz-panel input[type=number]{flex:1;min-width:0;padding:5px 6px;background:#1E1C26;color:#EFEBF4;
+  border:1px solid #322E3D;border-radius:4px;font:inherit;font-size:12px;}
+.fz-unit{flex:0 0 auto;font-size:11.5px;color:#A29BB0;}
 .fz-mini{flex:0 0 auto;padding:4px 8px;font:inherit;font-size:11px;background:transparent;
   color:#A29BB0;border:1px solid #322E3D;border-radius:4px;cursor:pointer;}
 .fz-mini:hover{color:#EFEBF4;border-color:#5C566B;}
@@ -555,6 +561,22 @@ export function mountUI(FZ: Core): void {
     ratioRow.appendChild(detectButton);
     root.appendChild(ratioRow);
 
+    const strideRow = make("div", "fz-row");
+    strideRow.title = "가로 휠(또는 Shift + 휠) 한 칸에 넘길 프레임 수";
+    strideRow.appendChild(make("label", "fz-label", "휠 한 칸"));
+    const strideInput = make("input");
+    strideInput.type = "number";
+    strideInput.min = "1";
+    strideInput.max = String(STRIDE_MAX);
+    strideInput.step = "1";
+    strideInput.addEventListener("input", () => {
+      const value = Math.round(Number(strideInput.value));
+      if (value >= 1 && value <= STRIDE_MAX) setStride(value);
+    });
+    strideRow.appendChild(strideInput);
+    strideRow.appendChild(make("span", "fz-unit", "프레임"));
+    root.appendChild(strideRow);
+
     const viewRow = make("div", "fz-viewRow fz-hidden");
     const viewHead = make("div", "fz-viewHead");
     viewHead.appendChild(make("span", "fz-label", "보이는 영역"));
@@ -590,7 +612,7 @@ export function mountUI(FZ: Core): void {
       "mousedown", "mouseup", "keydown", "keyup", "wheel"];
     for (const type of SEAL) root.addEventListener(type, (e) => e.stopPropagation(), false);
 
-    parts = { root, fitButtons, spinButtons, wideButton, pipButton, flipButton, read, ratio, viewRow, view, canvas, win, lock, pic, note, detectButton };
+    parts = { root, fitButtons, spinButtons, wideButton, pipButton, flipButton, strideInput, read, ratio, viewRow, view, canvas, win, lock, pic, note, detectButton };
     return root;
   }
 
@@ -665,6 +687,8 @@ export function mountUI(FZ: Core): void {
     parts.wideButton.setAttribute("aria-pressed", String(wide));
     parts.pipButton.setAttribute("aria-pressed", String(pip.isOpen()));
     parts.flipButton.setAttribute("aria-pressed", String(flip));
+    // 숫자를 치는 도중에는 덮어쓰지 않는다.
+    if (parts.strideInput.ownerDocument.activeElement !== parts.strideInput) parts.strideInput.value = String(stride);
     const value = String(snap.state.sourceRatio || 0);
     const preset = PRESETS.find(([v]) => Math.abs(Number(v) - Number(value)) < 0.005);
     if (preset) {
@@ -772,7 +796,7 @@ export function mountUI(FZ: Core): void {
   }
 
   function saveUI() {
-    try { chrome.storage.local.set({ [UI_KEY]: { shown, pic: picture, wide, flip } }); } catch (e) { /* 무시 */ }
+    try { chrome.storage.local.set({ [UI_KEY]: { shown, pic: picture, wide, flip, stride } }); } catch (e) { /* 무시 */ }
   }
 
   function setShown(next: boolean): void {
@@ -786,6 +810,17 @@ export function mountUI(FZ: Core): void {
     wide = !!next;
     saveUI();
     sync();
+  }
+
+  function strideOf(value: UISaved): number {
+    const n = value ? Math.round(Number(value.stride)) : 1;
+    return n >= 1 && n <= STRIDE_MAX ? n : 1;
+  }
+
+  function setStride(next: number): void {
+    stride = next;
+    frames.setStride(stride);
+    saveUI();
   }
 
   function setFlip(next: boolean): void {
@@ -810,7 +845,11 @@ export function mountUI(FZ: Core): void {
     const nextPic = !value || value.pic !== false;
     const nextWide = !!value && value.wide === true;
     const nextFlip = !!value && value.flip === true;
-    if (nextShown === shown && nextPic === picture && nextWide === wide && nextFlip === flip) return;
+    const nextStride = strideOf(value);
+    if (nextShown === shown && nextPic === picture && nextWide === wide && nextFlip === flip &&
+        nextStride === stride) return;
+    stride = nextStride;
+    frames.setStride(stride);
     wide = nextWide;
     flip = nextFlip;
     frames.setFlip(flip);
@@ -1010,6 +1049,8 @@ export function mountUI(FZ: Core): void {
         wide = saved.wide === true;
         flip = saved.flip === true;
         frames.setFlip(flip);
+        stride = strideOf(saved);
+        frames.setStride(stride);
       }
       reseat();
     });
