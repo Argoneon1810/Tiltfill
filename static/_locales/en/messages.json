@@ -132,16 +132,16 @@
     "message": "Flip wheel"
   },
   "flipWheelTitle": {
-    "message": "Reverses the direction of frame stepping with the horizontal wheel (or Shift + wheel)"
+    "message": "Reverses the direction of seeking with the wheel"
   },
   "pictureRatio": {
     "message": "Picture ratio"
   },
   "strideLabel": {
-    "message": "Wheel step"
+    "message": "Fine step"
   },
   "strideTitle": {
-    "message": "Frames to step per notch of the horizontal wheel (or Shift + wheel)"
+    "message": "Frames to step per wheel notch while holding Alt"
   },
   "framesUnit": {
     "message": "frames"

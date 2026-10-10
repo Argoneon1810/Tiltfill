@@ -132,16 +132,16 @@
     "message": "휠 반대"
   },
   "flipWheelTitle": {
-    "message": "가로 휠(또는 Shift + 휠)로 프레임을 넘길 때의 방향을 뒤집습니다"
+    "message": "휠로 영상을 넘길 때의 방향을 뒤집습니다"
   },
   "pictureRatio": {
     "message": "그림 비율"
   },
   "strideLabel": {
-    "message": "휠 한 칸"
+    "message": "작은 점프"
   },
   "strideTitle": {
-    "message": "가로 휠(또는 Shift + 휠) 한 칸에 넘길 프레임 수"
+    "message": "Alt 를 누른 채 휠을 굴릴 때 한 칸에 넘길 프레임 수"
   },
   "framesUnit": {
     "message": "프레임"

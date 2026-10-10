@@ -86,20 +86,34 @@ export const PAN_KEYS = {
 } as const;
 
 /* ---------------------------------------------------------------
-   프레임 넘기기
+   휠로 영상 넘기기
 
-   재생기나 PIP 창 위에서 휠을 가로로 굴리면 한 프레임씩 넘긴다. 가로 휠이
+   재생기나 PIP 창 위에서 휠을 가로로 굴리면 영상을 앞뒤로 넘긴다. 가로 휠이
    없는 마우스는 modifier 를 누른 채 굴린다. 왼쪽(위)이 앞으로 가는 쪽이다.
+
+   걸음은 세 가지다. 그냥 굴리면 일반 점프, fineModifier 를 더하면 작은 점프,
+   bigModifier 를 더하면 큰 점프다. Shift 는 가로로 굴린다는 뜻으로 이미 쓰고
+   있어서 크기를 고르는 데 쓸 수 없다. 작게가 Alt, 크게가 Ctrl 인 것은 포토샵과
+   크롬 개발자 도구의 관례를 따른 것이다.
    --------------------------------------------------------------- */
 
+type WheelModifier = "shiftKey" | "ctrlKey" | "altKey" | "metaKey";
+
 export const FRAME_WHEEL = {
-  /** 이만큼 굴리면 한 걸음이다. 보통 마우스의 휠 한 칸이 100 이다.
-      한 걸음에 몇 프레임을 넘길지는 패널의 "휠 한 칸" 에서 정한다. */
-  pixelsPerFrame: 100,
+  /** 이만큼 굴리면 한 걸음이다. 보통 마우스의 휠 한 칸이 100 이다. */
+  pixelsPerStep: 100,
   /** 앞으로 가는 쪽의 기본값. -1 이면 왼쪽(위)으로 굴릴 때, 1 이면 오른쪽(아래)으로 굴릴 때다.
       패널의 "휠 반대" 단추가 이것을 뒤집는다. */
   forward: -1,
-  modifier: "shiftKey" as "shiftKey" | "ctrlKey" | "altKey" | "metaKey"
+  modifier: "shiftKey" as WheelModifier,
+  /** 일반 점프. 한 걸음에 건너뛰는 초. 재생은 멈추지 않는다. */
+  normalSeconds: 5,
+  /** 큰 점프. bigModifier 를 누른 채 굴릴 때 한 걸음에 건너뛰는 초. */
+  bigSeconds: 10,
+  bigModifier: "ctrlKey" as WheelModifier,
+  /** 작은 점프. fineModifier 를 누른 채 굴리면 영상을 멈추고 프레임 단위로 넘긴다.
+      한 걸음에 몇 프레임인지는 패널의 "작은 점프" 에서 정한다. */
+  fineModifier: "altKey" as WheelModifier
 } as const;
 
 /* ---------------------------------------------------------------
