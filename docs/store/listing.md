@@ -118,14 +118,10 @@ Runs a content script on YouTube pages to apply a CSS transform to the video ele
 
 ## 테스트 안내 탭
 
+사용자 이름과 비밀번호는 비워 둡니다. 로그인이 필요 없는 확장입니다. "추가 안내" 는 500자까지라서 줄인 글을 넣습니다.
+
 ```
-1. Install the extension, then open any video on https://www.youtube.com in a new tab. A video with black bars shows the effect best, for example a 2.39:1 film trailer.
-2. A small button appears at the top right of the player. Click it to open the panel. (Shortcut: Ctrl+Alt+Shift+1)
-3. In the panel, choose "Fill height", "Fill width" or "Fill both". The black bars disappear. If the bars are baked into the video, click "Detect" while the video is playing.
-4. Choose a rotation in the second row of the panel. Click "PIP" (or press Alt+P) to open the rotated video in a small window.
-5. Click "Fill window" to make the player fill the browser window.
-6. Hold Shift and scroll over the player to jump 5 seconds. Hold Alt as well to step frame by frame.
-No login or account is needed.
+No login needed. 1) Open any video on https://www.youtube.com (a 2.39:1 film trailer shows the effect best). 2) Click the small button at the top right of the player to open the panel (Ctrl+Alt+Shift+1). 3) Choose Fill height, Fill width or Fill both: the black bars disappear. 4) Pick a rotation, then click PIP (Alt+P): the rotated video opens in a small window. 5) Click Fill window. 6) Hold Shift and scroll over the player to jump 5 seconds; add Alt to step frame by frame.
 ```
 
 ## 스크린샷
