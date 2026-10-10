@@ -6,75 +6,19 @@
 </head>
 <body>
   <header class="head">
-    <span class="mark">Fill Zoom</span>
+    <span class="mark">Fill Zoom <span class="version" id="version"></span></span>
     <span class="host" id="host">—</span>
   </header>
 
-  <div class="stageWrap">
-    <div class="stage" id="stage" tabindex="0"
-         title="밝은 상자를 끌어 옮기세요. 두 번 누르면 가운데로 돌아갑니다">
-      <img id="shot" alt="">
-      <div class="win" id="win"></div>
-      <div class="lock hidden" id="lock">이 영상은 그림을 읽을 수 없습니다</div>
-    </div>
-  </div>
-
   <p class="readout" id="readout">영상을 찾는 중입니다</p>
-  <button class="wide reload hidden" id="reload">이 탭 새로고침</button>
 
-  <div class="row viewRow" id="viewRow">
-    <span class="rowLabel">보이는 영역</span>
-    <span class="viewHint" id="viewHint">상자를 끌어 옮기세요</span>
-    <button class="mini" id="pic" aria-pressed="true"
-            title="영상 그림을 미리보기에 그립니다. 끄면 도식만 남습니다">그림</button>
-    <button class="mini" id="center">가운데</button>
-  </div>
+  <button class="wide hidden" id="open">재생기에서 패널 열기</button>
+  <button class="wide hidden" id="reload">이 탭 새로고침</button>
 
-  <div class="spins" id="spins">
-    <button class="spin" data-rot="0">바로</button>
-    <button class="spin" data-rot="90">↻ 90°</button>
-    <button class="spin" data-rot="270">↺ 90°</button>
-    <button class="spin" data-rot="180">180°</button>
-  </div>
-
-  <div class="fits" id="fits">
-    <button class="fit" data-fit="off">원래 크기</button>
-    <button class="fit" data-fit="vertical">상하 채움</button>
-    <button class="fit" data-fit="horizontal">좌우 채움</button>
-    <button class="fit" data-fit="both">꽉 채움</button>
-  </div>
-
-  <div class="row">
-    <label class="rowLabel" for="ratio">영상 속 그림 비율</label>
-    <select id="ratio">
-      <option value="0">자동</option>
-      <option value="2.39">2.39 : 1</option>
-      <option value="2.35">2.35 : 1</option>
-      <option value="2.3333">21 : 9</option>
-      <option value="2">2 : 1</option>
-      <option value="1.85">1.85 : 1</option>
-      <option value="1.7778">16 : 9</option>
-      <option value="1.3333">4 : 3</option>
-      <option value="1">1 : 1</option>
-      <option value="0.5625">9 : 16</option>
-      <option value="custom">직접 입력</option>
-    </select>
-  </div>
-  <div class="row hidden" id="customRow">
-    <label class="rowLabel" for="customRatio">가로 ÷ 세로</label>
-    <input type="number" id="customRatio" step="0.01" min="0.2" max="5" placeholder="2.39">
-  </div>
-  <div class="row">
-    <span class="rowLabel">영상에서 감지</span>
-    <button class="wide" id="detect">재생 화면 읽어서 찾기</button>
-  </div>
-
-  <p class="note" id="note"></p>
-
-  <button class="wide full" id="fullscreen">전체화면으로 전환</button>
+  <p class="note">조작은 재생기 안의 패널에서 합니다. 전체화면에서도 같은 패널을 씁니다.</p>
 
   <!-- 단축키 안내는 popup.ts 가 shortcuts.ts 의 표로 채운다 -->
-  <footer class="foot" id="foot"></footer>
+  <ul class="foot" id="foot"></ul>
 
   <script src="popup.js"></script>
 </body>

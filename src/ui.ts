@@ -969,7 +969,8 @@ export function mountUI(FZ: Core): void {
     }, 1100);
   };
 
-  FZ.togglePanel = () => setExpanded(!expanded);
+  // 확장 팝업의 단추가 부른다.
+  FZ.openPanel = () => setExpanded(true);
 
   // 되돌리기는 어느 길로 오든(페이지 키, 브라우저 단축키, 팝업) core.reset 을 거친다.
   FZ.afterReset = () => { if (wide) setWide(false); };

@@ -9,7 +9,7 @@
  * 영상 파일 안에 검은 띠가 구워져 있는 경우에는 그 띠의 크기를 따로 알아내야 한다.
  */
 import type {
-  DetectResult, FitMode, FitState, FrameResult, Message, Report, Reply, Rotation, Snapshot
+  DetectResult, FitMode, FitState, Message, Report, Reply, Rotation, Snapshot
 } from "./types";
 
 export interface Crop { sx: number; sy: number; sw: number; sh: number }
@@ -28,8 +28,6 @@ export interface Core {
   detect(done: (result: DetectResult) => void): void;
   drawFrame(ctx: CanvasRenderingContext2D | null, w: number, h: number): boolean;
   pictureCrop(): Crop | null;
-  grabFrame(maxW?: number): FrameResult;
-  requestFullscreen(done: (result: { fullscreen: boolean }) => void): void;
   subscribe(fn: (snap: Snapshot) => void): () => boolean;
   getBox(): HTMLElement | null;
   getVideo(): HTMLVideoElement | null;
@@ -38,7 +36,7 @@ export interface Core {
   setAway(on: boolean): void;
   /** ui 가 채워 넣는다. core 는 있으면 부르고 없으면 넘어간다. */
   toast?: (text: string) => void;
-  togglePanel?: () => void;
+  openPanel?: () => void;
   /** 되돌리기가 ui 쪽 상태(창 채움)까지 풀게 한다. */
   afterReset?: () => void;
   stats?: () => unknown;
@@ -372,38 +370,6 @@ export function createCore(): Core {
     }
   }
 
-  // 확장 팝업은 다른 문서라 video 를 직접 못 그린다. 그림 한 장을 넘겨 준다.
-  // 막히는 경우가 두 가지고 뜻이 다르다.
-  //   blocked — 보호된 영상이라 그리기 자체가 막혔다. 페이지 안에서도 못 본다.
-  //   tainted — 교차 출처 영상이라 캔버스가 오염됐다. 화면에 그리는 것은 되므로
-  //             페이지 안의 패널에서는 보인다. 되읽어서 내보내는 것만 막힌다.
-  // 넓이가 작은 2D 캔버스는 크롬이 가속 대상에서 빼는데, 그러면 drawImage 가
-  // 원본 프레임을 통째로 CPU 로 끌어내린 뒤 줄인다. 1920x1080 을 회수하는
-  // 것과 384x216 을 회수하는 것의 차이라서, 여기서는 작게 잡을수록 손해다.
-  const MIN_CANVAS_AREA = 68000;
-  let frameCanvas: HTMLCanvasElement | null = null;
-
-  function grabFrame(maxW?: number): FrameResult {
-    const r = lastReport || buildReport(1);
-    if (!r || !r.cw || !r.ch) return { error: "notready" };
-    let w = Math.max(16, Math.min(Math.round(maxW || 320), 512));
-    let h = Math.max(16, Math.round(w * r.ch / r.cw));
-    if (w * h < MIN_CANVAS_AREA) {
-      const k = Math.sqrt(MIN_CANVAS_AREA / (w * h));
-      w = Math.round(w * k);
-      h = Math.round(h * k);
-    }
-    if (!frameCanvas) frameCanvas = document.createElement("canvas");
-    if (frameCanvas.width !== w || frameCanvas.height !== h) {
-      frameCanvas.width = w;
-      frameCanvas.height = h;
-    }
-    if (!drawFrame(frameCanvas.getContext("2d"), w, h)) return { error: "blocked" };
-    // 이쪽은 되읽기가 반드시 필요하다. 팝업은 다른 문서라 캔버스를 넘길 수 없다.
-    try { return { url: frameCanvas.toDataURL("image/jpeg", 0.6) }; }
-    catch (e) { return { error: "tainted" }; }
-  }
-
   function snapshot(): Snapshot {
     return {
       ok: true,
@@ -498,21 +464,6 @@ export function createCore(): Core {
       done({ ratio });
     };
     tick();
-  }
-
-  /* =============================================================
-     전체화면
-     ============================================================= */
-
-  function requestFullscreen(done: (result: { fullscreen: boolean }) => void): void {
-    if (document.fullscreenElement) { done({ fullscreen: true }); return; }
-    const ytButton = document.querySelector<HTMLElement>(".ytp-fullscreen-button");
-    try {
-      if (ytButton) ytButton.click();
-      else if (box && box.requestFullscreen) box.requestFullscreen().catch(() => {});
-      else if (video && video.requestFullscreen) video.requestFullscreen().catch(() => {});
-    } catch (e) { /* 아래에서 결과로 판단한다 */ }
-    setTimeout(() => done({ fullscreen: !!document.fullscreenElement }), 450);
   }
 
   /* =============================================================
@@ -632,8 +583,6 @@ export function createCore(): Core {
     detect,
     drawFrame,
     pictureCrop,
-    grabFrame,
-    requestFullscreen,
     subscribe: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
     getBox: () => box,
     getVideo: () => video,
@@ -647,18 +596,9 @@ export function createCore(): Core {
 
     switch (msg.type) {
       case "getState": schedule(false); sendResponse(snapshot()); return true;
-      case "setState": setState(msg.patch); sendResponse(snapshot()); return true;
       case "cycleFit": { const l = cycle(); FZ.toast?.(l); sendResponse(snapshot()); return true; }
       case "resetFit": { const l = reset(); FZ.toast?.(l); sendResponse(snapshot()); return true; }
-      case "spin": { const l = spin(); FZ.toast?.(l); sendResponse(snapshot()); return true; }
-      case "togglePanel": FZ.togglePanel?.(); sendResponse(snapshot()); return true;
-      case "frame": sendResponse({ ...snapshot(), frame: grabFrame(msg.maxW) }); return true;
-      case "detect":
-        detect((result) => sendResponse({ ...snapshot(), detect: result }));
-        return true;
-      case "fullscreen":
-        requestFullscreen((result) => sendResponse({ ...snapshot(), ...result }));
-        return true;
+      case "openPanel": FZ.openPanel?.(); sendResponse(snapshot()); return true;
     }
     return false;
   });

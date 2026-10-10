@@ -55,10 +55,13 @@ export const PANEL_HINTS: ReadonlyArray<readonly [PageAction, string]> = [
 
 /** 확장 팝업 아래쪽에 늘어놓는 안내. 순서대로 보인다. */
 export const FOOTER_HINTS: ReadonlyArray<readonly [PageAction, string]> = [
-  ["togglePanel", "펼치기"],
-  ["toggleShown", "감추기"],
-  ["cycleFit", "채움"],
-  ["spin", "회전"]
+  ["togglePanel", "패널 펼치기 / 접기"],
+  ["toggleShown", "조작판 띄우기 / 감추기"],
+  ["cycleFit", "채움 방식 바꾸기"],
+  ["spin", "회전 바꾸기"],
+  ["reset", "되돌리기"],
+  ["windowFill", "창 가득 채우기"],
+  ["pip", "PIP"]
 ];
 
 /* ---------------------------------------------------------------

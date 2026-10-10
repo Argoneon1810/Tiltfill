@@ -32,29 +32,17 @@ export interface Snapshot {
   label: string;
 }
 
-export type FrameResult =
-  | { url: string; error?: undefined }
-  | { url?: undefined; error: "notready" | "blocked" | "tainted" };
-
 export interface DetectResult {
   error?: string;
   ratio?: number;
 }
 
+/** 팝업과 서비스 워커가 콘텐츠 스크립트로 보내는 것. 조작은 페이지 안 패널이 직접 한다. */
 export type Message =
   | { type: "getState" }
-  | { type: "setState"; patch: Partial<FitState> }
   | { type: "cycleFit" }
   | { type: "resetFit" }
-  | { type: "spin" }
-  | { type: "togglePanel" }
-  | { type: "frame"; maxW?: number }
-  | { type: "detect" }
-  | { type: "fullscreen" };
+  | { type: "openPanel" };
 
-/** 메시지마다 돌아오는 응답. 영상이 없는 프레임은 응답하지 않는다. */
-export type Reply = Snapshot & {
-  frame?: FrameResult;
-  detect?: DetectResult;
-  fullscreen?: boolean;
-};
+/** 메시지마다 돌아오는 응답. 영상이 없으면 null 이 온다. */
+export type Reply = Snapshot;
