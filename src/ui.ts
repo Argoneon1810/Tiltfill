@@ -138,7 +138,7 @@ export function mountUI(FZ: Core): void {
   font:400 13px/1.5 system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
   box-shadow:0 12px 32px rgba(0,0,0,.5);text-align:left;}
 .fz-panel *{box-sizing:border-box;}
-/* 재생기가 패널보다 낮으면 패널을 재생기 밖(문서 본문)으로 꺼내 창 기준으로 띄운다.
+/* 전체화면과 창 채움이 아니면 패널은 문서 본문에 붙어 창 기준으로 뜬다.
    자리와 높이 상한은 placeFloat 가 인라인으로 넣는다. */
 .fz-panel.fz-float{position:fixed;right:auto;z-index:2147483646;}
 .fz-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
@@ -820,28 +820,23 @@ export function mountUI(FZ: Core): void {
 
   /* 패널 자리 정하기
 
-     패널은 보통 재생기를 덮는 층 안에 있다. 그런데 재생기가 패널보다 낮으면
-     패널이 재생기에 갇혀 일부가 잘리고, 그 안에서 굴려야 보인다. 그럴 때는 패널을
-     문서 본문으로 꺼내 창 기준으로 띄운다. 재생기 아래로 자연스럽게 내려온다.
+     패널을 재생기를 덮는 층 안에 두면 재생기보다 클 수 없어서, 낮은 재생기에서는
+     일부가 잘린다. 그래서 평소에는 문서 본문에 두고 창 기준으로 띄운다. 재생기의
+     오른쪽 위에서 시작해 재생기 아래로 내려올 수 있다.
 
-     전체화면과 창 채움에서는 꺼내지 않는다. 전체화면 요소 밖에 있는 것은 보이지
-     않고, 창 채움은 재생기 바깥을 모두 감춘다. 두 경우 모두 재생기가 충분히 높다. */
-  const PANEL_MARGIN = 76;  // 층 안에서 패널 위아래로 비워 두는 높이 (CSS 의 max-height 와 같다)
+     전체화면과 창 채움에서만 층 안에 둔다. 전체화면 요소 밖에 있는 것은 브라우저가
+     그리지 않고, 창 채움은 재생기 바깥을 모두 감춘다. 두 경우 모두 재생기가 화면이나
+     창만큼 커서 잘리지 않는다.
+
+     들어가는지 재 보고 정하지 않는다. 재는 데 한 박자가 걸려서, 잘린 채로 한 번
+     보였다가 뒤늦게 밖으로 나오는 것이 눈에 띈다. */
   let floating = false;
   let floatRaf = 0;
 
   function seatPanel(l: HTMLDivElement): void {
     if (!panel) return;
     const box = FZ.getBox();
-    const allowed = !document.fullscreenElement && !wideActive && !!box && l.parentElement === box;
-    let next = false;
-    if (allowed && box) {
-      if (!floating && panel.parentElement !== l) l.appendChild(panel);
-      // 층 안에 있을 때는 넘쳤는지를, 밖에 있을 때는 돌아가면 넘칠지를 본다. 문턱은 같다.
-      next = floating
-        ? panel.scrollHeight + 2 + PANEL_MARGIN > box.clientHeight
-        : panel.scrollHeight > panel.clientHeight + 1;
-    }
+    const next = !document.fullscreenElement && !wideActive && !!box && l.parentElement === box;
     floating = next;
     panel.classList.toggle("fz-float", floating);
     if (floating) {
