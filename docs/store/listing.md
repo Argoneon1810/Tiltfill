@@ -98,10 +98,10 @@ storage
 Stores the settings the user chooses (fit mode, whether window fill is on, wheel direction, frames per fine step, whether the preview picture is on, whether the player button is hidden) in chrome.storage.local so they apply on the next visit. Only these settings are stored, and nothing is sent anywhere.
 ```
 
-호스트 권한 (`https://*.youtube.com/*`)
+호스트 권한 (`https://www.youtube.com/*`)
 
 ```
-Runs a content script on YouTube pages to apply a CSS transform to the video element, add a button and a control panel to the player, and read video frames locally in the browser to detect black bars and draw a preview. Frames are never stored or transmitted. The extension does not access any site other than YouTube.
+Runs a content script on YouTube pages to apply a CSS transform to the video element, add a button and a control panel to the player, and read video frames locally in the browser to detect black bars and draw a preview. Frames are never stored or transmitted. The extension runs only on www.youtube.com and does not access any other site.
 ```
 
 ### 나머지 항목

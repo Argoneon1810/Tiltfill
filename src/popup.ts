@@ -70,7 +70,7 @@ function isYoutube(url: string | undefined): boolean {
   if (!url) return false;
   try {
     const { protocol, hostname } = new URL(url);
-    return protocol === "https:" && (hostname === "youtube.com" || hostname.endsWith(".youtube.com"));
+    return protocol === "https:" && hostname === "www.youtube.com";
   } catch (e) {
     return false;
   }
