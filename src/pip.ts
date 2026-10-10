@@ -28,6 +28,8 @@ export interface Pip {
 
 const LONG_SIDE = 480;  // 처음 여는 창의 긴 변
 const SEEK_S = 5;       // 창 안에서 방향키로 건너뛰는 초
+const ASPECT_TOL = 0.02; // 창과 그림의 비율이 이만큼 어긋나면 창을 다시 맞춘다
+const SNAP_MS = 250;    // 창 크기 끌기가 멎었다고 보는 시간
 
 // 유튜브는 video 의 크기와 자리를 인라인 스타일로 계속 다시 쓴다. 창 안에서는
 // 그 값을 !important 로 눌러 두고, 실제 값은 .stage 의 변수로 넘긴다.
@@ -50,6 +52,8 @@ export function createPip(
   FZ: Core, onChange: () => void, onPageKey: (event: KeyboardEvent) => boolean
 ): Pip {
   let win: Window | null = null;
+  // video 가 원래 있던 자리. 창을 갈아 끼우는 동안에도 처음 잰 값을 쥐고 있는다.
+  let seat: { home: Node | null; after: Node | null } | null = null;
 
   function isOpen(): boolean { return !!win || !!document.pictureInPictureElement; }
 
@@ -80,13 +84,18 @@ export function createPip(
     const video = FZ.getVideo();
     if (!video) { FZ.toast?.("영상을 찾지 못했습니다"); return; }
 
-    const api = (window as unknown as { documentPictureInPicture?: DocumentPip }).documentPictureInPicture;
-    if (!api) { plain(video); return; }
+    if (!request(video, LONG_SIDE)) plain(video);
+  }
 
+  // 그림의 비율에 맞춘 창을 연다. 이미 열린 창이 있으면 크롬이 그것을 닫고 새로 연다.
+  function request(video: HTMLVideoElement, longSide: number): boolean {
+    const api = (window as unknown as { documentPictureInPicture?: DocumentPip }).documentPictureInPicture;
+    if (!api) return false;
     const size = pictureSize(video);
-    const k = LONG_SIDE / Math.max(size.w, size.h);
+    const k = longSide / Math.max(size.w, size.h);
     api.requestWindow({ width: Math.round(size.w * k), height: Math.round(size.h * k) })
       .then((w) => open(w, video), () => FZ.toast?.("PIP 를 열지 못했습니다"));
+    return true;
   }
 
   function open(w: Window, video: HTMLVideoElement): void {
@@ -104,8 +113,7 @@ export function createPip(
     doc.body.appendChild(stage);
 
     // 돌려놓을 자리를 기억하고, core 가 걸어 둔 배율을 푼 다음에 옮긴다.
-    const home = video.parentNode;
-    const after = video.nextSibling;
+    if (video.ownerDocument === document) seat = { home: video.parentNode, after: video.nextSibling };
     const playing = !video.paused;
     FZ.setAway(true);
     stage.appendChild(video);
@@ -187,8 +195,53 @@ export function createPip(
       event.preventDefault();
     });
 
-    const unsubscribe = FZ.subscribe(layout);
-    w.addEventListener("resize", layout);
+    /* 창 크기 — 기본 PIP 처럼 창이 그림의 비율을 따라가게 한다
+
+       문서 PIP 창에는 비율을 잠그는 설정이 없다. 어긋날 때마다 resizeTo 로 다시
+       맞춘다. 크롬은 이 창의 resizeTo 에 사용자 제스처를 요구할 수 있어서, 안 되면
+       창을 새로 여는 쪽으로 넘어간다. 그것도 안 되면 여백이 남은 채로 둔다. */
+
+    const aspect = () => { const size = pictureSize(video); return size.w / size.h; };
+    const off = () => {
+      const a = aspect();
+      return Math.abs(w.innerWidth / w.innerHeight - a) / a > ASPECT_TOL;
+    };
+    // 넓이는 그대로 두고 모양만 바꾼다.
+    function snap(): void {
+      if (!off()) return;
+      const a = aspect();
+      const area = w.innerWidth * w.innerHeight;
+      const nw = Math.round(Math.sqrt(area * a));
+      const nh = Math.round(Math.sqrt(area / a));
+      try { w.resizeTo(nw + w.outerWidth - w.innerWidth, nh + w.outerHeight - w.innerHeight); }
+      catch (e) { /* 아래에서 결과로 판단한다 */ }
+    }
+
+    let snapTimer = 0;
+    let lastAspect = aspect();
+    const onState = () => {
+      layout();
+      const a = aspect();
+      if (Math.abs(a - lastAspect) < 0.001) return;
+      lastAspect = a;
+      // 회전이나 그림 비율이 바뀌었다. 창을 고쳐 보고, 안 고쳐졌으면 새로 연다.
+      // 새로 여는 것은 방금 누른 키나 단추의 제스처가 남아 있는 동안에만 된다.
+      snap();
+      clearTimeout(snapTimer);
+      snapTimer = window.setTimeout(() => {
+        if (win !== w || !off()) return;
+        const activation = navigator.userActivation;
+        if (activation && activation.isActive) request(video, Math.max(w.innerWidth, w.innerHeight));
+      }, 150);
+    };
+    const onResize = () => {
+      layout();
+      clearTimeout(snapTimer);
+      snapTimer = window.setTimeout(() => { if (win === w) snap(); }, SNAP_MS);
+    };
+
+    const unsubscribe = FZ.subscribe(onState);
+    w.addEventListener("resize", onResize);
     video.addEventListener("loadedmetadata", layout);
     video.addEventListener("resize", layout);
     layout();
@@ -197,9 +250,15 @@ export function createPip(
     w.addEventListener("pagehide", () => {
       captionObs.disconnect();
       unsubscribe();
+      clearTimeout(snapTimer);
       video.removeEventListener("loadedmetadata", layout);
       video.removeEventListener("resize", layout);
+      // 새 창이 이미 video 를 가져갔다면 이 창은 조용히 물러난다.
+      if (win !== w) return;
       const wasPlaying = !video.paused;
+      const home = seat ? seat.home : null;
+      const after = seat ? seat.after : null;
+      seat = null;
       if (home && home.isConnected) {
         home.insertBefore(video, after && after.parentNode === home ? after : null);
         if (wasPlaying && video.paused) video.play().catch(() => {});
@@ -207,7 +266,7 @@ export function createPip(
       FZ.setAway(false);
       // 유튜브가 돌아온 video 의 크기를 다시 재게 한다.
       window.dispatchEvent(new Event("resize"));
-      if (win === w) win = null;
+      win = null;
       onChange();
     });
     onChange();
