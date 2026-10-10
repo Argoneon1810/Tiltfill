@@ -7,6 +7,12 @@
  * 항상 위에 뜨는 작은 웹 문서라서 안에 든 것을 CSS 로 돌릴 수 있고, 글자도
  * 올릴 수 있다.
  *
+ * 이 창은 기본 PIP 창과 달리 영상의 비율을 잠그지 못한다. 창 테두리를 끌면
+ * 여백이 생긴다. 창 크기를 바꾸는 resizeTo 가 사용자 제스처를 요구하고, 테두리를
+ * 끄는 동작은 제스처로 쳐주지 않아서 저절로 맞출 수도 없다. 비율이 잠기는
+ * 기본 PIP 로 돌린 그림을 띄우려면 캔버스를 거쳐야 하는데, 그 길은 프레임이
+ * 고르지 않았다 (`discarded/pip-canvas`).
+ *
  * 창에는 재생기의 video 요소 자체를 옮겨 넣는다. captureStream() 으로 사본을
  * 만들어 물리는 방법도 있지만, 그쪽은 탭이 그린 화면을 다시 붙잡는 것이라
  * 프레임이 고르지 않고 탭이 가려지면 더 떨어진다. 요소를 옮기면 디코더가
@@ -18,7 +24,9 @@
 import type { Core } from "./core";
 
 interface DocumentPip {
-  requestWindow(options?: { width?: number; height?: number }): Promise<Window>;
+  requestWindow(options?: {
+    width?: number; height?: number; preferInitialWindowPlacement?: boolean;
+  }): Promise<Window>;
 }
 
 export interface Pip {
@@ -29,7 +37,6 @@ export interface Pip {
 const LONG_SIDE = 480;  // 처음 여는 창의 긴 변
 const SEEK_S = 5;       // 창 안에서 방향키로 건너뛰는 초
 const ASPECT_TOL = 0.02; // 창과 그림의 비율이 이만큼 어긋나면 창을 다시 맞춘다
-const SNAP_MS = 250;    // 창 크기 끌기가 멎었다고 보는 시간
 
 // 유튜브는 video 의 크기와 자리를 인라인 스타일로 계속 다시 쓴다. 창 안에서는
 // 그 값을 !important 로 눌러 두고, 실제 값은 .stage 의 변수로 넘긴다.
@@ -93,7 +100,11 @@ export function createPip(
     if (!api) return false;
     const size = pictureSize(video);
     const k = longSide / Math.max(size.w, size.h);
-    api.requestWindow({ width: Math.round(size.w * k), height: Math.round(size.h * k) })
+    // 크롬은 사용자가 마지막으로 잡아 둔 창 크기를 기억했다가 다시 쓴다. 그러면 여기서
+    // 넘긴 크기가 무시되어 창이 그림의 비율과 어긋난다. 기억한 값을 쓰지 않게 한다.
+    api.requestWindow({
+      width: Math.round(size.w * k), height: Math.round(size.h * k), preferInitialWindowPlacement: true
+    })
       .then((w) => open(w, video), () => FZ.toast?.("PIP 를 열지 못했습니다"));
     return true;
   }
@@ -184,7 +195,11 @@ export function createPip(
     /* 조작 — 누르면 재생과 정지, 방향키로 건너뛰기 */
 
     const playPause = () => { if (video.paused) video.play().catch(() => {}); else video.pause(); };
-    stage.addEventListener("click", playPause);
+    // 창 테두리를 끌어 비율이 어긋난 뒤의 첫 누름은 창을 맞추는 데 쓴다. 누름은
+    // 제스처라서 이때는 resizeTo 가 통한다. 그 누름으로 재생이 멈추지는 않게 한다.
+    let fixing = false;
+    stage.addEventListener("pointerdown", () => { fixing = off(); if (fixing) snap(); });
+    stage.addEventListener("click", () => { if (fixing) fixing = false; else playPause(); });
     // 이 창은 다른 문서라서 페이지에 걸어 둔 키 처리가 닿지 않는다. 같은 처리로 넘긴다.
     doc.addEventListener("keydown", (event) => {
       if (onPageKey(event)) return;
@@ -195,11 +210,11 @@ export function createPip(
       event.preventDefault();
     });
 
-    /* 창 크기 — 기본 PIP 처럼 창이 그림의 비율을 따라가게 한다
+    /* 창 크기 — 회전이나 그림 비율이 바뀌면 창을 그 비율로 다시 맞춘다
 
-       문서 PIP 창에는 비율을 잠그는 설정이 없다. 어긋날 때마다 resizeTo 로 다시
-       맞춘다. 크롬은 이 창의 resizeTo 에 사용자 제스처를 요구할 수 있어서, 안 되면
-       창을 새로 여는 쪽으로 넘어간다. 그것도 안 되면 여백이 남은 채로 둔다. */
+       resizeTo 는 이 창 안에서 생긴 제스처가 있어야 통한다. 창 안에서 키를 눌러
+       돌렸으면 통하고, 탭에서 돌렸으면 안 통한다. 안 통했으면 탭에 남은 제스처로
+       창을 새로 연다. */
 
     const aspect = () => { const size = pictureSize(video); return size.w / size.h; };
     const off = () => {
@@ -234,14 +249,8 @@ export function createPip(
         if (activation && activation.isActive) request(video, Math.max(w.innerWidth, w.innerHeight));
       }, 150);
     };
-    const onResize = () => {
-      layout();
-      clearTimeout(snapTimer);
-      snapTimer = window.setTimeout(() => { if (win === w) snap(); }, SNAP_MS);
-    };
-
     const unsubscribe = FZ.subscribe(onState);
-    w.addEventListener("resize", onResize);
+    w.addEventListener("resize", layout);
     video.addEventListener("loadedmetadata", layout);
     video.addEventListener("resize", layout);
     layout();
