@@ -153,6 +153,7 @@
 | `npm run build` | 타입을 검사하고 한 번 빌드합니다. |
 | `npm run watch` | 파일을 고칠 때마다 다시 빌드합니다. 타입 검사는 하지 않습니다. |
 | `npm run typecheck` | 타입 검사만 합니다. |
+| `npm run package` | 새로 빌드한 뒤 스토어에 올릴 zip 을 `release/` 에 만듭니다. |
 
 빌드한 뒤에는 `chrome://extensions` 에서 Tiltfill 을 새로고침하고 유튜브 탭도 새로고침해야 바뀐 것이 보입니다.
 

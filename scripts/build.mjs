@@ -27,7 +27,7 @@ async function writeStatic() {
   manifest.commands = Object.fromEntries(
     Object.entries(BROWSER_COMMANDS).map(([name, c]) => [
       name,
-      { suggested_key: { default: c.suggested }, description: `__MSG_${c.descriptionKey}__` }
+      { suggested_key: { default: c.suggested, mac: c.suggestedMac }, description: `__MSG_${c.descriptionKey}__` }
     ])
   );
   await writeFile(path.join(dist, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");

@@ -128,9 +128,12 @@ export const FRAME_WHEEL = {
    Ctrl+Alt+Shift 를 쓸 수 없고, Alt+Shift 에 숫자를 붙였다.
    --------------------------------------------------------------- */
 
+/* 맥에서는 Option+Shift+8, Option+Shift+9 가 글자(°, ·)를 찍는 조합이다. 브라우저 단축키는
+   모든 탭에서 듣기 때문에 그대로 두면 다른 사이트에서 그 글자를 칠 수 없게 된다. 맥에는
+   글자를 찍지 않는 Control+Shift 를 따로 제안한다. */
 export const BROWSER_COMMANDS = {
-  "cycle-fit": { suggested: "Alt+Shift+8", descriptionKey: "cmdCycleFit", message: "cycleFit" },
-  "reset-fit": { suggested: "Alt+Shift+9", descriptionKey: "cmdResetFit", message: "resetFit" }
+  "cycle-fit": { suggested: "Alt+Shift+8", suggestedMac: "MacCtrl+Shift+8", descriptionKey: "cmdCycleFit", message: "cycleFit" },
+  "reset-fit": { suggested: "Alt+Shift+9", suggestedMac: "MacCtrl+Shift+9", descriptionKey: "cmdResetFit", message: "resetFit" }
 } as const;
 
 export type BrowserCommand = keyof typeof BROWSER_COMMANDS;
@@ -148,12 +151,15 @@ export function matches(event: KeyboardEvent, combo: KeyCombo): boolean {
 }
 
 /** { code: "Digit1", ctrl, alt, shift } → "Ctrl+Alt+Shift+1" */
+// 맥의 자판에는 Ctrl 과 Alt 대신 Control 과 Option 이 적혀 있다.
+const MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform || "");
+
 export function keyLabel(combo: KeyCombo): string {
   const bits: string[] = [];
-  if (combo.ctrl) bits.push("Ctrl");
-  if (combo.alt) bits.push("Alt");
+  if (combo.ctrl) bits.push(MAC ? "Control" : "Ctrl");
+  if (combo.alt) bits.push(MAC ? "Option" : "Alt");
   if (combo.shift) bits.push("Shift");
-  if (combo.meta) bits.push("Meta");
+  if (combo.meta) bits.push(MAC ? "Command" : "Meta");
   bits.push(codeLabel(combo.code));
   return bits.join("+");
 }

@@ -779,8 +779,8 @@ export function mountUI(FZ: Core): void {
     return layer;
   }
 
-  function dropLayerIfIdle() {
-    if (!layer || shown) return;
+  function dropLayerIfIdle(force = false) {
+    if (!layer || (shown && !force)) return;
     if (toastEl && toastEl.parentElement === layer) return;
     if (layer.parentElement) layer.remove();
   }
@@ -794,11 +794,13 @@ export function mountUI(FZ: Core): void {
       playerButton.title = (shown ? t("hideControlsNamed", name) : t("showControlsNamed", name)) +
         ` (${pageKey("toggleShown")})`;
     }
-    if (!shown) {
+    // 재생기가 없는 페이지(홈, 검색, 채널)에는 단추도 층도 띄우지 않는다.
+    const nowhere = !FZ.getBox() && !document.fullscreenElement;
+    if (!shown || nowhere) {
       if (panel && panel.parentElement) panel.remove();
       if (launcher && launcher.parentElement) launcher.remove();
       stopPreview();
-      dropLayerIfIdle();
+      dropLayerIfIdle(nowhere);
       return;
     }
 
@@ -1104,6 +1106,7 @@ export function mountUI(FZ: Core): void {
 
   // PIP 창의 키 입력도 이리로 온다. 처리했으면 true 를 돌려준다.
   function handleKey(event: KeyboardEvent): boolean {
+    if (gone) return false;
     const action = KEYED.find((a) => matches(event, PAGE_KEYS[a]));
     if (!action) return false;
     event.preventDefault();
@@ -1119,6 +1122,7 @@ export function mountUI(FZ: Core): void {
 
   // 재생기 위에서 가로로 굴린 휠만 받는다. 패널 안의 휠은 패널의 것이다.
   document.addEventListener("wheel", (event) => {
+    if (gone) return;
     const target = event.target;
     const box = FZ.getBox();
     if (!(target instanceof Element) || !box || !box.contains(target)) return;
@@ -1137,7 +1141,24 @@ export function mountUI(FZ: Core): void {
     else syncPreview();
   });
 
+  // 확장이 업데이트되거나 꺼져서 이 스크립트가 주인을 잃었으면, 화면에 붙여 둔 것을
+  // 모두 떼고 물러난다. core 는 alive() 안에서 걸어 둔 확대를 푼다.
+  let gone = false;
+  function retire(): void {
+    if (gone) return;
+    gone = true;
+    clearInterval(uiTick);
+    stopPreview();
+    winFill.sync(false);
+    if (autoObs) { autoObs.disconnect(); autoObs = null; }
+    for (const el of [panel, launcher, layer, playerButton, toastEl, document.getElementById("fz-style")]) {
+      if (el && el.parentElement) el.remove();
+    }
+  }
+
   function reseat() {
+    if (gone) return;
+    if (!FZ.alive()) { retire(); return; }
     mountPlayerButton();
     frames.watch();
     sync();
@@ -1150,7 +1171,7 @@ export function mountUI(FZ: Core): void {
   // 유튜브는 페이지를 갈아 끼운다. 영상 페이지를 드나들 때 창 채움을 바로 맞춘다.
   document.addEventListener("yt-navigate-finish", reseat);
   document.addEventListener("webkitfullscreenchange", reseat);
-  setInterval(reseat, 1000);
+  const uiTick = setInterval(reseat, 1000);
 
   try {
     chrome.storage.local.get(UI_KEY, (obj) => {

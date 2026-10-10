@@ -33,6 +33,8 @@ export interface Core {
   getBox(): HTMLElement | null;
   getVideo(): HTMLVideoElement | null;
   refresh(): void;
+  /** 확장이 살아 있는지. 주인을 잃었으면 걸어 둔 것을 풀고 false 를 돌려준다. */
+  alive(): boolean;
   /** video 요소를 다른 문서(PIP 창)로 내보낸 동안에는 손대지 않는다. */
   setAway(on: boolean): void;
   /** ui 가 채워 넣는다. core 는 있으면 부르고 없으면 넘어간다. */
@@ -72,6 +74,7 @@ export function createCore(): Core {
   let appliedDX = 0;
   let appliedDY = 0;
   let away = false;
+  let dead = false;   // 확장이 주인을 잃었다 (아래 alive)
   const listeners = new Set<(snap: Snapshot) => void>();
 
   /* =============================================================
@@ -81,9 +84,20 @@ export function createCore(): Core {
   // 유튜브에서만 돈다 (manifest 의 matches). 재생기 요소는 이 선택자로 잡는다.
   const PLAYER_SELECTOR = "#movie_player, .html5-video-player";
 
+  // 영상을 보는 페이지의 본 재생기만 대상으로 삼는다. 문서에서 가장 큰 video 를 그냥
+  // 고르면, 홈이나 검색에서 마우스를 올렸을 때 도는 미리보기에도 채움과 회전이 걸린다.
+  function playerVideos(): string | null {
+    const path = location.pathname;
+    if (path === "/watch" || path.startsWith("/live/") || path.startsWith("/embed/")) return "#movie_player video";
+    if (path.startsWith("/shorts/")) return "#shorts-player video";
+    return null;
+  }
+
   function pickVideo(): HTMLVideoElement | null {
+    const selector = playerVideos();
+    if (!selector) return null;
     const list: HTMLVideoElement[] = [];
-    for (const v of document.querySelectorAll("video")) {
+    for (const v of document.querySelectorAll<HTMLVideoElement>(selector)) {
       if (v.offsetWidth > 80 && v.offsetHeight > 60) list.push(v);
     }
     if (!list.length) return null;
@@ -238,6 +252,10 @@ export function createCore(): Core {
     const v = measureVideo(video);
     const br = box.getBoundingClientRect();
 
+    // 숨겨진 video 는 크기가 0 이다. 기다려도 자리가 잡히지 않으므로 다시 시도하지 않는다.
+    // 다시 보이면 ResizeObserver 가 알려 준다.
+    if (!v.width || !v.height) { signature = ""; return; }
+
     if (!isSettled(v.width, v.height, br.width, br.height)) {
       // 아직 자리가 안 잡혔다. 걸어 둔 값은 그대로 두고 잠시 뒤에 다시 시도한다.
       signature = "";
@@ -297,6 +315,7 @@ export function createCore(): Core {
 
   let pendingForce = false;
   function schedule(force: boolean): void {
+    if (dead) return;
     if (force) pendingForce = true;
     if (rafId) return;
     rafId = requestAnimationFrame(() => {
@@ -614,6 +633,7 @@ export function createCore(): Core {
     getBox: () => box,
     getVideo: () => video,
     refresh: () => schedule(true),
+    alive,
     setAway
   };
 
@@ -663,11 +683,25 @@ export function createCore(): Core {
 
   document.addEventListener("yt-navigate-finish", checkVideo);
 
-  setInterval(() => {
+  // attach 는 대상이 그대로면 바로 돌아온다. 영상 페이지를 떠났으면 여기서 떼어 낸다.
+  const tick = setInterval(() => {
+    if (!alive()) return;
     checkVideo();
-    if (!video || !video.isConnected) attach();
-    else schedule(false);
+    if (attach()) schedule(false);
   }, 1000);
+
+  /* 확장이 업데이트되거나 꺼지면 이미 열린 탭의 이 스크립트는 주인을 잃는다. 크롬은 그런
+     스크립트를 치워 주지 않아서, 걸어 둔 확대와 단추가 새로고침할 때까지 남는다. 주인을
+     잃었는지는 chrome.runtime.id 가 사라졌는지로 안다. 알아챈 자리에서 손을 뗀다. */
+  function alive(): boolean {
+    if (dead) return false;
+    try { if (chrome.runtime && chrome.runtime.id) return true; } catch (e) { /* 아래로 */ }
+    dead = true;
+    clearInterval(tick);
+    clearSettle();
+    detach();
+    return false;
+  }
 
   return FZ;
 }
