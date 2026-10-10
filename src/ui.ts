@@ -14,7 +14,7 @@
  */
 import type { Core } from "./core";
 import type { Snapshot } from "./types";
-import { PAGE_KEYS, PAN_KEYS, matches, pageKey, type PageAction } from "./shortcuts";
+import { PAGE_KEYS, PANEL_HINTS, PAN_KEYS, matches, pageKey, type PageAction } from "./shortcuts";
 import { RATIO_PRESETS as PRESETS, SPIN_TEXT } from "./labels";
 import { createFrameStep } from "./frames";
 import { createPip } from "./pip";
@@ -47,6 +47,7 @@ interface Parts {
   lock: HTMLDivElement;
   pic: HTMLButtonElement;
   note: HTMLParagraphElement;
+  keys: HTMLUListElement;
   detectButton: HTMLButtonElement;
   /** 미리보기 자리의 폭. 처음 그릴 때 한 번 잰다. */
   full?: number;
@@ -163,6 +164,9 @@ export function mountUI(FZ: Core): void {
 .fz-mini:hover{color:#EFEBF4;border-color:#5C566B;}
 .fz-mini[aria-pressed="true"]{color:#EFEBF4;background:#26232F;border-color:#5C566B;}
 .fz-note{margin:6px 0 0;font-size:10.5px;line-height:1.45;color:#A29BB0;}
+.fz-keys{margin:6px 0 0;padding:0;list-style:none;font-size:10.5px;line-height:1.45;color:#A29BB0;}
+.fz-keys li{display:flex;justify-content:space-between;gap:8px;padding:2px 0;}
+.fz-keys kbd{font:inherit;color:#EFEBF4;white-space:nowrap;}
 .fz-hidden{display:none !important;}
 /* 보이는 영역 고르기. 영상의 저해상도 사본 위에 지금 화면에 나오는 부분을
    밝은 상자로 그리고, 그 상자를 끌어 옮기게 한다. */
@@ -606,13 +610,23 @@ export function mountUI(FZ: Core): void {
     const note = make("p", "fz-note", "");
     root.appendChild(note);
 
+    // 아무것도 걸려 있지 않을 때 보이는 단축키 목록.
+    const keys = make("ul", "fz-keys");
+    for (const [action, label] of PANEL_HINTS) {
+      const item = make("li");
+      item.appendChild(make("span", null, label));
+      item.appendChild(make("kbd", null, pageKey(action)));
+      keys.appendChild(item);
+    }
+    root.appendChild(keys);
+
     // 재생기가 클릭이나 키를 가로채지 않도록 패널 밖으로 나가는 것만 막는다.
     // 캡처 단계에서 막으면 패널 안의 단추와 입력까지 이벤트를 못 받는다.
     const SEAL = ["click", "dblclick", "pointerdown", "pointermove", "pointerup",
       "mousedown", "mouseup", "keydown", "keyup", "wheel"];
     for (const type of SEAL) root.addEventListener(type, (e) => e.stopPropagation(), false);
 
-    parts = { root, fitButtons, spinButtons, wideButton, pipButton, flipButton, strideInput, read, ratio, viewRow, view, canvas, win, lock, pic, note, detectButton };
+    parts = { root, fitButtons, spinButtons, wideButton, pipButton, flipButton, strideInput, read, ratio, viewRow, view, canvas, win, lock, pic, note, keys, detectButton };
     return root;
   }
 
@@ -665,7 +679,7 @@ export function mountUI(FZ: Core): void {
     if (!r) return "";
     if (snap.state.fit === "off") {
       if (snap.state.rotation) return "돌린 그림이 상자 안에 들어오도록 맞춰 놓았습니다.";
-      return `${pageKey("cycleFit")} 로 채움 방식을, ${pageKey("spin")} 로 회전을 바꿉니다.`;
+      return "";
     }
     if (r.scale > 1.001) return "";
     if (snap.state.sourceRatio > 0) return "고른 비율로는 더 확대할 여지가 없습니다.";
@@ -708,6 +722,7 @@ export function mountUI(FZ: Core): void {
     }
     setText(parts.read, describe(snap));
     setText(parts.note, noteFor(snap));
+    parts.keys.classList.toggle("fz-hidden", active);
 
     paintView(snap);
   }

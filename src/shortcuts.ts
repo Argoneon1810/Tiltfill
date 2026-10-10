@@ -47,6 +47,12 @@ export const PAGE_KEYS = {
 
 export type PageAction = keyof typeof PAGE_KEYS;
 
+/** 페이지 안 패널이 아무것도 걸려 있지 않을 때 늘어놓는 안내. 순서대로 보인다. */
+export const PANEL_HINTS: ReadonlyArray<readonly [PageAction, string]> = [
+  ["cycleFit", "채움 방식 바꾸기"],
+  ["spin", "회전 바꾸기"]
+];
+
 /** 확장 팝업 아래쪽에 늘어놓는 안내. 순서대로 보인다. */
 export const FOOTER_HINTS: ReadonlyArray<readonly [PageAction, string]> = [
   ["togglePanel", "펼치기"],
