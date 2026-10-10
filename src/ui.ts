@@ -15,6 +15,8 @@
 import type { Core } from "./core";
 import type { Snapshot } from "./types";
 import { PAGE_KEYS, PAN_KEYS, matches, pageKey, type PageAction } from "./shortcuts";
+import { createPip } from "./pip";
+import { createWindowFill } from "./winfill";
 
 interface Geom {
   ratio: number;
@@ -30,6 +32,8 @@ interface Parts {
   root: HTMLDivElement;
   fitButtons: Record<string, HTMLButtonElement>;
   spinButtons: Record<number, HTMLButtonElement>;
+  wideButton: HTMLButtonElement;
+  pipButton: HTMLButtonElement;
   read: HTMLParagraphElement;
   ratio: HTMLSelectElement;
   viewRow: HTMLDivElement;
@@ -46,7 +50,7 @@ interface Parts {
   viewH?: number;
 }
 
-type UISaved = { shown?: boolean; pic?: boolean } | undefined;
+type UISaved = { shown?: boolean; pic?: boolean; wide?: boolean } | undefined;
 
 export function mountUI(FZ: Core): void {
   const PRESETS: ReadonlyArray<readonly [string, string]> = [
@@ -89,6 +93,10 @@ export function mountUI(FZ: Core): void {
   let shown = true;      // 조작판을 띄울지 (저장한다)
   let picture = true;    // 미리보기에 영상 그림을 그릴지 (저장한다)
   let expanded = false;  // 본 패널을 펼쳤는지 (저장하지 않는다)
+  let wide = false;      // 재생기를 창 가득 채울지 (저장한다)
+
+  const winFill = createWindowFill();
+  const pip = createPip(FZ, () => paint(FZ.snapshot()));
 
   let previewTimer = 0;
   let previewStamp = "";
@@ -148,6 +156,7 @@ export function mountUI(FZ: Core): void {
   color:#EFEBF4;font:inherit;font-size:11.5px;cursor:pointer;}
 .fz-spin:hover{border-color:#5C566B;}
 .fz-spin[aria-pressed="true"]{background:#8CA0FF;border-color:#8CA0FF;color:#14131A;font-weight:700;}
+.fz-extras{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:9px;}
 .fz-read{margin:0 0 10px;font-size:11.5px;color:#A29BB0;text-align:center;min-height:16px;}
 .fz-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
 .fz-label{flex:0 0 74px;font-size:11.5px;color:#A29BB0;}
@@ -522,6 +531,17 @@ export function mountUI(FZ: Core): void {
     }
     root.appendChild(spins);
 
+    const extras = make("div", "fz-extras");
+    const wideButton = make("button", "fz-spin", "창 채움");
+    wideButton.title = `재생기를 브라우저 창 가득 채웁니다 (${pageKey("windowFill")})`;
+    wideButton.addEventListener("click", () => setWide(!wide));
+    extras.appendChild(wideButton);
+    const pipButton = make("button", "fz-spin", "PIP");
+    pipButton.title = `돌린 방향 그대로 작은 창에 띄웁니다 (${pageKey("pip")})`;
+    pipButton.addEventListener("click", () => pip.toggle());
+    extras.appendChild(pipButton);
+    root.appendChild(extras);
+
     const read = make("p", "fz-read", "");
     root.appendChild(read);
 
@@ -576,7 +596,7 @@ export function mountUI(FZ: Core): void {
       "mousedown", "mouseup", "keydown", "keyup", "wheel"];
     for (const type of SEAL) root.addEventListener(type, (e) => e.stopPropagation(), false);
 
-    parts = { root, fitButtons, spinButtons, read, ratio, viewRow, view, canvas, win, lock, pic, note, detectButton };
+    parts = { root, fitButtons, spinButtons, wideButton, pipButton, read, ratio, viewRow, view, canvas, win, lock, pic, note, detectButton };
     return root;
   }
 
@@ -648,6 +668,8 @@ export function mountUI(FZ: Core): void {
     for (const deg of FZ.ROTATIONS) {
       parts.spinButtons[deg].setAttribute("aria-pressed", String(deg === (snap.state.rotation || 0)));
     }
+    parts.wideButton.setAttribute("aria-pressed", String(wide));
+    parts.pipButton.setAttribute("aria-pressed", String(pip.isOpen()));
     const value = String(snap.state.sourceRatio || 0);
     const preset = PRESETS.find(([v]) => Math.abs(Number(v) - Number(value)) < 0.005);
     if (preset) {
@@ -725,6 +747,7 @@ export function mountUI(FZ: Core): void {
   }
 
   function sync() {
+    winFill.sync(wide);
     if (playerButton) {
       playerButton.classList.toggle("fz-off", !shown);
       playerButton.title = (shown ? "Fill Zoom 조작판 감추기" : "Fill Zoom 조작판 띄우기") + ` (${pageKey("toggleShown")})`;
@@ -754,12 +777,18 @@ export function mountUI(FZ: Core): void {
   }
 
   function saveUI() {
-    try { chrome.storage.local.set({ [UI_KEY]: { shown, pic: picture } }); } catch (e) { /* 무시 */ }
+    try { chrome.storage.local.set({ [UI_KEY]: { shown, pic: picture, wide } }); } catch (e) { /* 무시 */ }
   }
 
   function setShown(next: boolean): void {
     shown = !!next;
     if (!shown) expanded = false;
+    saveUI();
+    sync();
+  }
+
+  function setWide(next: boolean): void {
+    wide = !!next;
     saveUI();
     sync();
   }
@@ -777,7 +806,9 @@ export function mountUI(FZ: Core): void {
   function adopt(value: UISaved): void {
     const nextShown = !value || value.shown !== false;
     const nextPic = !value || value.pic !== false;
-    if (nextShown === shown && nextPic === picture) return;
+    const nextWide = !!value && value.wide === true;
+    if (nextShown === shown && nextPic === picture && nextWide === wide) return;
+    wide = nextWide;
     shown = nextShown;
     if (!shown) expanded = false;
     if (nextPic !== picture) {
@@ -908,7 +939,9 @@ export function mountUI(FZ: Core): void {
     reset: () => FZ.toast?.(FZ.reset()),
     spin: () => FZ.toast?.(FZ.spin()),
     togglePanel: () => setExpanded(!expanded),
-    toggleShown: () => setShown(!shown)
+    toggleShown: () => setShown(!shown),
+    windowFill: () => { setWide(!wide); FZ.toast?.(wide ? "창 가득 채움" : "창 채움 해제"); },
+    pip: () => pip.toggle()
   };
   const KEYED = Object.keys(PAGE_KEYS) as PageAction[];
 
@@ -939,6 +972,8 @@ export function mountUI(FZ: Core): void {
   }
 
   document.addEventListener("fullscreenchange", reseat);
+  // 유튜브는 페이지를 갈아 끼운다. 영상 페이지를 드나들 때 창 채움을 바로 맞춘다.
+  document.addEventListener("yt-navigate-finish", reseat);
   document.addEventListener("webkitfullscreenchange", reseat);
   setInterval(reseat, 1000);
 
@@ -948,6 +983,7 @@ export function mountUI(FZ: Core): void {
       if (saved && typeof saved === "object") {
         shown = saved.shown !== false;
         picture = saved.pic !== false;
+        wide = saved.wide === true;
       }
       reseat();
     });

@@ -4,7 +4,7 @@
  * 서비스 워커, 그리고 빌드가 만드는 manifest.json 이 이 표를 읽는다.
  * 안내 문구에 나오는 "Ctrl+Alt+Shift+1" 같은 글도 이 표에서 만든다.
  *
- * 고르는 기준은 "평소에 누를 일이 없는 조합" 이다.
+ * 고르는 기준은 "평소에 누를 일이 없는 조합" 이다. PIP 만 예외다 (아래 PAGE_KEYS).
  *   - Ctrl, Alt, Shift 를 한꺼번에 요구한다. 브라우저도, 브라우저에서 돌리는
  *     편집기도 이 셋을 다 쓰는 기본 단축키를 거의 두지 않는다.
  *   - 글쇠는 숫자열을 쓴다. 글자는 편집기 단축키와 부딪히기 쉽다.
@@ -38,7 +38,11 @@ export const PAGE_KEYS = {
   toggleShown: { code: "Digit2", ...ALL_THREE },  // 조작판 자체를 띄우기 / 감추기
   cycleFit:    { code: "Digit3", ...ALL_THREE },  // 채움 방식 차례로 바꾸기
   spin:        { code: "Digit4", ...ALL_THREE },  // 회전 차례로 바꾸기
-  reset:       { code: "Digit5", ...ALL_THREE }   // 채움과 회전 되돌리기
+  reset:       { code: "Digit5", ...ALL_THREE },  // 채움과 회전 되돌리기
+  windowFill:  { code: "Digit6", ...ALL_THREE },  // 창 가득 채우기 켜기 / 끄기
+  // 구글의 PIP 확장이 쓰던 키를 그대로 잇는다. 위의 기준에서 벗어난 유일한 키다.
+  // 그 확장을 함께 켜 두면 같은 키를 두고 겹친다.
+  pip:         { code: "KeyP", alt: true }        // PIP 열기 / 닫기
 } as const satisfies Record<string, KeyCombo>;
 
 export type PageAction = keyof typeof PAGE_KEYS;

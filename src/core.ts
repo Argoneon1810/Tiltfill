@@ -12,6 +12,8 @@ import type {
   DetectResult, FitMode, FitState, FrameResult, Message, Report, Reply, Rotation, Snapshot
 } from "./types";
 
+export interface Crop { sx: number; sy: number; sw: number; sh: number }
+
 export interface Core {
   FIT_ORDER: readonly FitMode[];
   FIT_LABEL: Record<FitMode, string>;
@@ -25,6 +27,7 @@ export interface Core {
   reset(): string;
   detect(done: (result: DetectResult) => void): void;
   drawFrame(ctx: CanvasRenderingContext2D | null, w: number, h: number): boolean;
+  pictureCrop(): Crop | null;
   grabFrame(maxW?: number): FrameResult;
   requestFullscreen(done: (result: { fullscreen: boolean }) => void): void;
   subscribe(fn: (snap: Snapshot) => void): () => boolean;
@@ -327,7 +330,7 @@ export function createCore(): Core {
 
   // 미리보기가 보여 줄 그림의 원본 좌표. 영상 파일 안에 구워진 검은 띠는
   // 그림이 아니므로 잘라 낸다. 상자 계산에서 쓰는 contentSize 와 같은 전제다.
-  function pictureCrop() {
+  function pictureCrop(): Crop | null {
     if (!video || !video.videoWidth || !video.videoHeight) return null;
     const vw = video.videoWidth;
     const vh = video.videoHeight;
@@ -610,6 +613,7 @@ export function createCore(): Core {
     reset,
     detect,
     drawFrame,
+    pictureCrop,
     grabFrame,
     requestFullscreen,
     subscribe: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
