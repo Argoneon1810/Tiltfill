@@ -3,7 +3,7 @@
     "message": "Tiltfill"
   },
   "extDescription": {
-    "message": "Rotates YouTube videos and crops their black margins to fill the player. Keeps the rotation in picture-in-picture, fills the browser window, and steps frame by frame."
+    "message": "Rotate YouTube videos and crop black bars to fill the player. Rotation carries into picture-in-picture. No data collected."
   },
   "fitOff": {
     "message": "Original"

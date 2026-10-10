@@ -54,6 +54,11 @@ async function checkMessages() {
   for (const key of Object.keys(ko)) if (!en[key]) problems.push(`en 에 ${key} 가 없습니다`);
   for (const key of Object.keys(en)) if (!ko[key]) problems.push(`ko 에 ${key} 가 없습니다`);
   for (const key of Object.keys(ko)) if (!used.has(key)) problems.push(`${key} 는 쓰이지 않습니다`);
+  // 스토어는 요약을 132자, 이름을 75자까지만 받는다.
+  for (const [lang, table] of [["ko", ko], ["en", en]]) {
+    if (table.extDescription && [...table.extDescription.message].length > 132) problems.push(`${lang} 의 extDescription 이 132자를 넘습니다`);
+    if (table.extName && [...table.extName.message].length > 75) problems.push(`${lang} 의 extName 이 75자를 넘습니다`);
+  }
   if (problems.length) throw new Error("messages.json 확인:\n  " + [...new Set(problems)].join("\n  "));
 }
 
