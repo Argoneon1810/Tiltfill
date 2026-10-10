@@ -73,9 +73,10 @@ video{position:absolute !important;left:50% !important;top:50% !important;
   font:400 11px/1.3 system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;}
 `;
 
-/** onPageKey 는 페이지 단축키를 처리하고, 처리했으면 true 를 돌려준다. */
+/** onPageKey 는 페이지 단축키를, onWheel 은 가로 휠을 처리하고, 처리했으면 true 를 돌려준다. */
 export function createPip(
-  FZ: Core, onChange: () => void, onPageKey: (event: KeyboardEvent) => boolean
+  FZ: Core, onChange: () => void, onPageKey: (event: KeyboardEvent) => boolean,
+  onWheel: (event: WheelEvent) => boolean
 ): Pip {
   let win: Window | null = null;
   // video 가 원래 있던 자리. 창을 갈아 끼우는 동안에도 처음 잰 값을 쥐고 있는다.
@@ -292,7 +293,8 @@ export function createPip(
     let fixing = false;
     stage.addEventListener("pointerdown", () => { fixing = off(); if (fixing) snap(); });
     stage.addEventListener("click", () => { if (fixing) fixing = false; else playPause(); });
-    // 이 창은 다른 문서라서 페이지에 걸어 둔 키 처리가 닿지 않는다. 같은 처리로 넘긴다.
+    // 이 창은 다른 문서라서 페이지에 걸어 둔 키와 휠 처리가 닿지 않는다. 같은 처리로 넘긴다.
+    stage.addEventListener("wheel", (event) => { onWheel(event); }, { passive: false });
     doc.addEventListener("keydown", (event) => {
       if (onPageKey(event)) return;
       // 조작줄에 초점이 있으면 Space 와 방향키는 단추와 드롭다운의 것이다.

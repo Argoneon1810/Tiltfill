@@ -16,6 +16,7 @@ import type { Core } from "./core";
 import type { Snapshot } from "./types";
 import { PAGE_KEYS, PAN_KEYS, matches, pageKey, type PageAction } from "./shortcuts";
 import { RATIO_PRESETS as PRESETS, SPIN_TEXT } from "./labels";
+import { createFrameStep } from "./frames";
 import { createPip } from "./pip";
 import { createWindowFill } from "./winfill";
 
@@ -82,7 +83,8 @@ export function mountUI(FZ: Core): void {
   let wide = false;      // 재생기를 창 가득 채울지 (저장한다)
 
   const winFill = createWindowFill();
-  const pip = createPip(FZ, () => paint(FZ.snapshot()), (event) => handleKey(event));
+  const frames = createFrameStep(FZ);
+  const pip = createPip(FZ, () => paint(FZ.snapshot()), (event) => handleKey(event), frames.onWheel);
 
   let previewTimer = 0;
   let previewStamp = "";
@@ -949,6 +951,15 @@ export function mountUI(FZ: Core): void {
     handleKey(event);
   }, true);
 
+  // 재생기 위에서 가로로 굴린 휠만 받는다. 패널 안의 휠은 패널의 것이다.
+  document.addEventListener("wheel", (event) => {
+    const target = event.target;
+    const box = FZ.getBox();
+    if (!(target instanceof Element) || !box || !box.contains(target)) return;
+    if (target.closest(".fz-panel")) return;
+    frames.onWheel(event);
+  }, { capture: true, passive: false });
+
   /* ---------------------------------------------------------------
      붙이고 유지하기
      --------------------------------------------------------------- */
@@ -962,6 +973,7 @@ export function mountUI(FZ: Core): void {
 
   function reseat() {
     mountPlayerButton();
+    frames.watch();
     sync();
     watchAutohide();
   }

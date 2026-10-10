@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Fill Zoom",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "유튜브 영상의 검은 여백을 잘라내 화면을 채웁니다. 상하 채움, 좌우 채움, 꽉 채움을 지원합니다.",
   "permissions": ["storage"],
   "icons": {
