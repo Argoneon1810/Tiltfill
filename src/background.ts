@@ -1,4 +1,4 @@
-/* Fill Zoom — service worker */
+/* Tiltfill — service worker */
 import { BROWSER_COMMANDS, type BrowserCommand } from "./shortcuts";
 import type { Message } from "./types";
 

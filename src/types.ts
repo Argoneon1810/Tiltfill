@@ -1,4 +1,4 @@
-/* Fill Zoom — 콘텐츠 스크립트, 팝업, 서비스 워커가 함께 쓰는 모양 */
+/* Tiltfill — 콘텐츠 스크립트, 팝업, 서비스 워커가 함께 쓰는 모양 */
 
 export type FitMode = "off" | "vertical" | "horizontal" | "both";
 export type Rotation = 0 | 90 | 180 | 270;

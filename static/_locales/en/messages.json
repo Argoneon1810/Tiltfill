@@ -1,9 +1,9 @@
 {
   "extName": {
-    "message": "Fill Zoom"
+    "message": "Tiltfill"
   },
   "extDescription": {
-    "message": "Crops the black margins of YouTube videos to fill the player. Also rotates the picture, keeps the rotation in picture-in-picture, fills the browser window, and steps frame by frame."
+    "message": "Rotates YouTube videos and crops their black margins to fill the player. Keeps the rotation in picture-in-picture, fills the browser window, and steps frame by frame."
   },
   "fitOff": {
     "message": "Original"

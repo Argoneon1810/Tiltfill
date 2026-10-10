@@ -1,4 +1,4 @@
-/* Fill Zoom — 화면에 보이는 글
+/* Tiltfill — 화면에 보이는 글
  *
  * 글은 static/_locales/<언어>/messages.json 에 있고, 크롬이 브라우저 언어에 맞는
  * 것을 골라 준다. 맞는 언어가 없으면 manifest 의 default_locale(영어)을 쓴다.

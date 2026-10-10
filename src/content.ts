@@ -1,4 +1,4 @@
-/* Fill Zoom — content script 입구
+/* Tiltfill — content script 입구
  *
  * core 가 계산과 적용을, ui 가 페이지 안 조작판과 키보드를 맡는다.
  * 빌드가 이 파일 하나로 묶어 content.js 를 만든다.

@@ -1,9 +1,9 @@
 {
   "extName": {
-    "message": "Fill Zoom"
+    "message": "Tiltfill"
   },
   "extDescription": {
-    "message": "유튜브 영상의 검은 여백을 잘라내 화면을 채웁니다. 회전, 돌린 방향 그대로 뜨는 PIP, 창 가득 채우기, 프레임 넘기기를 함께 씁니다."
+    "message": "유튜브 영상을 돌리고, 검은 여백을 잘라내 화면을 채웁니다. 돌린 방향 그대로 뜨는 PIP, 창 가득 채우기, 프레임 넘기기를 함께 씁니다."
   },
   "fitOff": {
     "message": "원래 크기"

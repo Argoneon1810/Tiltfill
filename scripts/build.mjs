@@ -1,4 +1,4 @@
-/* Fill Zoom — 빌드
+/* Tiltfill — 빌드
  *
  * src/*.ts 를 esbuild 로 묶어 dist/ 에 놓고, static/ 의 파일을 옮겨 담는다.
  * manifest.json 의 commands 는 src/shortcuts.ts 의 표로 채운다.

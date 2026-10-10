@@ -1,4 +1,4 @@
-/* Fill Zoom — in-page UI
+/* Tiltfill — in-page UI
  *
  * 전체화면에 들어가면 크롬의 확장 팝업을 열 수 없다.
  * 그래서 조작 수단을 페이지 안에 둔다.
