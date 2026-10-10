@@ -78,12 +78,14 @@ export const PAN_KEYS = {
    프레임 넘기기
 
    재생기나 PIP 창 위에서 휠을 가로로 굴리면 한 프레임씩 넘긴다. 가로 휠이
-   없는 마우스는 modifier 를 누른 채 굴린다. 오른쪽(아래)이 앞으로 가는 쪽이다.
+   없는 마우스는 modifier 를 누른 채 굴린다. 왼쪽(위)이 앞으로 가는 쪽이다.
    --------------------------------------------------------------- */
 
 export const FRAME_WHEEL = {
   /** 이만큼 굴리면 한 프레임이다. 보통 마우스의 휠 한 칸이 100 이다. */
   pixelsPerFrame: 100,
+  /** 앞으로 가는 쪽. -1 이면 왼쪽(위)으로 굴릴 때, 1 이면 오른쪽(아래)으로 굴릴 때다. */
+  forward: -1,
   modifier: "shiftKey" as "shiftKey" | "ctrlKey" | "altKey" | "metaKey"
 } as const;
 

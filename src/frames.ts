@@ -95,7 +95,7 @@ export function createFrameStep(FZ: Core): FrameStep {
 
     // 줄 단위나 쪽 단위로 오는 값을 픽셀로 맞춘다.
     const unit = event.deltaMode === 1 ? 33 : (event.deltaMode === 2 ? 300 : 1);
-    carry += delta * unit;
+    carry += delta * unit * FRAME_WHEEL.forward;
     const count = Math.trunc(carry / FRAME_WHEEL.pixelsPerFrame);
     if (!count) return true;
     carry -= count * FRAME_WHEEL.pixelsPerFrame;
