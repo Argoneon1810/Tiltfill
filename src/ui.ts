@@ -854,7 +854,7 @@ export function mountUI(FZ: Core): void {
   // 띄운 패널을 재생기의 오른쪽 위에 붙여 둔다. 페이지를 굴리면 재생기와 함께 움직인다.
   function placeFloat(): void {
     const box = FZ.getBox();
-    if (!panel || !floating || !box) return;
+    if (!panel || !floating || !box || settling) return;
     const rect = box.getBoundingClientRect();
     const top = Math.max(8, rect.top + 60);
     const s = panel.style;
@@ -863,6 +863,36 @@ export function mountUI(FZ: Core): void {
     s.maxHeight = Math.max(120, window.innerHeight - top - 8) + "px";
     // 재생기가 화면 위로 다 올라가면 패널만 남아 떠 있지 않게 한다.
     s.visibility = rect.bottom < 120 ? "hidden" : "visible";
+  }
+
+  // 전체화면에서 나오는 동안 재생기는 한 번에 제 크기로 가지 않는다. 지나치게 작아졌다가
+  // 돌아온다. 그 사이의 자리를 따라가면 패널이 두 번 튄다. 재생기의 자리가 몇 프레임
+  // 동안 그대로일 때까지 패널을 감춰 두었다가 한 번에 놓는다.
+  const SETTLE_FRAMES = 4;
+  const SETTLE_MAX_MS = 700;
+  let settling = false;
+
+  function settleFloat(): void {
+    if (!panel || !floating || settling) return;
+    settling = true;
+    panel.style.visibility = "hidden";
+    const started = performance.now();
+    let last = "";
+    let same = 0;
+    const tick = () => {
+      const box = FZ.getBox();
+      const r = box ? box.getBoundingClientRect() : null;
+      const now = r ? [r.left, r.top, r.width, r.height].map(Math.round).join("|") : "";
+      same = now === last ? same + 1 : 0;
+      last = now;
+      if (same >= SETTLE_FRAMES || performance.now() - started > SETTLE_MAX_MS || !floating) {
+        settling = false;
+        placeFloat();
+        return;
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
   }
 
   function onViewportMove(): void {
@@ -1113,6 +1143,8 @@ export function mountUI(FZ: Core): void {
   }
 
   document.addEventListener("fullscreenchange", reseat);
+  // reseat 가 패널을 밖으로 꺼낸 바로 뒤에 불린다.
+  document.addEventListener("fullscreenchange", settleFloat);
   // 유튜브는 페이지를 갈아 끼운다. 영상 페이지를 드나들 때 창 채움을 바로 맞춘다.
   document.addEventListener("yt-navigate-finish", reseat);
   document.addEventListener("webkitfullscreenchange", reseat);
