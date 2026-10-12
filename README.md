@@ -12,7 +12,11 @@
 
 ## 설치
 
-크롬 웹 스토어에는 아직 올리지 않았습니다. 올라가기 전까지는 직접 빌드해서 넣습니다. Node.js 22.18 이상이 필요합니다.
+[크롬 웹 스토어의 Tiltfill 페이지](https://chromewebstore.google.com/detail/tiltfill/ekodgikandbohjbgfofemohoefkpgkpd)에서 **Chrome에 추가**를 누릅니다. 설치한 뒤에는 열려 있던 유튜브 탭을 새로고침합니다.
+
+### 소스에서 직접 빌드하기
+
+코드를 고쳐 쓰거나 스토어에 올라가기 전의 판을 써 보려면 직접 빌드해서 넣습니다. Node.js 22.18 이상이 필요합니다.
 
 1. 저장소를 받아 빌드합니다. 끝나면 `dist` 폴더가 생깁니다.
 

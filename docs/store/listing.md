@@ -1,5 +1,7 @@
 # 스토어 등록 글 모음
 
+1.0.0 이 2026-10-12 에 게시됐습니다: <https://chromewebstore.google.com/detail/tiltfill/ekodgikandbohjbgfofemohoefkpgkpd>
+
 크롬 웹 스토어 개발자 대시보드에 붙여 넣을 글과 고를 값을 탭 순서대로 모았습니다.
 회색 상자 안의 글을 그대로 복사해 넣으면 됩니다.
 
