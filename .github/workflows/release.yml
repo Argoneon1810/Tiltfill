@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "릴리스할 태그 이름 (예: v1.0.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Publish Release ZIP
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Resolve target tag
+        id: ref
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout repository at tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.ref.outputs.tag }}
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck, build, and package ZIP
+        run: npm run package
+
+      - name: Verify tag and generate release notes
+        id: notes
+        env:
+          RELEASE_TAG: ${{ steps.ref.outputs.tag }}
+        run: node scripts/generate-release-notes.mjs
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.ref.outputs.tag }}
+          ZIP_PATH: ${{ steps.notes.outputs.zip_path }}
+          NOTES_PATH: ${{ steps.notes.outputs.notes_path }}
+        shell: bash
+        run: |
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" "${ZIP_PATH}" --clobber
+            gh release edit "${TAG}" --title "Tiltfill ${TAG}" --notes-file "${NOTES_PATH}"
+          else
+            gh release create "${TAG}" "${ZIP_PATH}" \
+              --verify-tag \
+              --title "Tiltfill ${TAG}" \
+              --notes-file "${NOTES_PATH}"
+          fi
