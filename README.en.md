@@ -1,8 +1,23 @@
+<div align="center">
+
+<img src="static/icons/128.png" width="88" height="88" alt="Tiltfill icon" />
+
 # Tiltfill
 
-[한국어](README.md) | **English**
+**Set sideways videos upright and crop black bars to fill the player.**
 
-A Chrome extension that rotates YouTube videos and crops their black bars so the picture fills the player.
+A Chrome extension that rotates YouTube videos and crops their black bars so the picture fills the player.<br/>
+Includes rotation-preserving PIP, window fill, and frame-by-frame wheel seeking—all local, with zero data collected.
+
+[한국어](README.md) · [**English**](README.en.md) · [**Install from Chrome Web Store**](https://chromewebstore.google.com/detail/tiltfill/ekodgikandbohjbgfofemohoefkpgkpd) · [Latest Release (`v1.0.0` ZIP)](https://github.com/Argoneon1810/Tiltfill/releases/latest) · [Changelog](CHANGELOG.md) · [Privacy Policy](PRIVACY.md) · [Report an Issue](https://github.com/Argoneon1810/Tiltfill/issues)
+
+</div>
+
+---
+
+| Before (Letterbox Bars) | After (`Fill height`) |
+| :---: | :---: |
+| ![Before fill](docs/store/screenshots/1-before.png) | ![After Fill height](docs/store/screenshots/2-after.png) |
 
 ## Features
 
@@ -15,6 +30,10 @@ A Chrome extension that rotates YouTube videos and crops their black bars so the
 ## Install
 
 Open [Tiltfill on the Chrome Web Store](https://chromewebstore.google.com/detail/tiltfill/ekodgikandbohjbgfofemohoefkpgkpd) and click **Add to Chrome**. Then reload any YouTube tabs that were already open.
+
+### Install from Release ZIP
+
+If you do not use the store, download `tiltfill-1.0.0.zip` from [GitHub Releases](https://github.com/Argoneon1810/Tiltfill/releases/latest), extract it into a permanent folder, open `chrome://extensions` (**Developer mode** on → **Load unpacked**), and choose that folder.
 
 ### Build from source
 
@@ -62,6 +81,8 @@ Below the buttons, a line such as `1.34× · sides 26% cropped` shows how much t
 
 ### Choosing what gets cropped
 
+![Control panel and crop preview](docs/store/screenshots/3-panel.png)
+
 Filling the player crops part of the picture. When that happens, a small preview of the video appears in the panel, with a bright box marking the part that is on screen.
 
 - Drag the box and the visible part follows. Click outside the box and the box moves there.
@@ -70,6 +91,10 @@ Filling the player crops part of the picture. When that happens, a small preview
 - If the preview is heavy on your computer, turn off **Picture**. The video picture goes away and only the box remains. Everything still works.
 
 ### Rotating
+
+| Before Rotation | Rotated 90° Right + Filled |
+| :---: | :---: |
+| ![Before rotation](docs/store/screenshots/4-before-rotate.png) | ![After 90 degree rotation](docs/store/screenshots/5-rotated.png) |
 
 Choose a direction from the four buttons under the fill buttons: upright, 90° right, 180°, 90° left.
 
@@ -186,3 +211,5 @@ Code comments and [CHANGELOG.md](CHANGELOG.md) are in Korean. The changelog reco
 ## License
 
 [GPL-3.0-or-later](LICENSE). Copyright (C) 2026 Jinhoon Choi.
+
+Screenshots show "Charge" ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), studio.blender.org) by Blender Foundation, cropped by this extension, and "Visualizing NASA's Next Lunar Flyby" by NASA's Goddard Space Flight Center, rotated by this extension. Neither organization is affiliated with or endorses Tiltfill.

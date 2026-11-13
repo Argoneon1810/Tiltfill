@@ -1,8 +1,23 @@
+<div align="center">
+
+<img src="static/icons/128.png" width="88" height="88" alt="Tiltfill 아이콘" />
+
 # Tiltfill
 
-**한국어** | [English](README.en.md)
+**눕혀진 세로 영상은 바로 세우고, 검은 띠는 잘라 내 화면 가득 채우세요.**
 
-유튜브 영상을 돌리고, 검은 띠를 잘라 내 화면을 채우는 크롬 확장입니다.
+유튜브 영상을 돌리고, 검은 띠를 잘라 내 화면을 채우는 크롬 확장입니다.<br/>
+돌린 방향 그대로 뜨는 PIP, 창 채움, 프레임 단위 휠 넘기기까지 데이터 수집 없이 브라우저 안에서만 동작합니다.
+
+[**한국어**](README.md) · [English](README.en.md) · [**크롬 웹 스토어에서 설치**](https://chromewebstore.google.com/detail/tiltfill/ekodgikandbohjbgfofemohoefkpgkpd) · [최신 릴리스 (`v1.0.0` ZIP)](https://github.com/Argoneon1810/Tiltfill/releases/latest) · [바뀐 내역](CHANGELOG.md) · [개인정보처리방침](PRIVACY.md) · [버그 제보](https://github.com/Argoneon1810/Tiltfill/issues)
+
+</div>
+
+---
+
+| 채우기 전 (위아래 검은 띠) | 상하 채움 적용 후 |
+| :---: | :---: |
+| ![채우기 전](docs/store/screenshots/1-before.png) | ![상하 채움 적용 후](docs/store/screenshots/2-after.png) |
 
 ## 기능
 
@@ -15,6 +30,10 @@
 ## 설치
 
 [크롬 웹 스토어의 Tiltfill 페이지](https://chromewebstore.google.com/detail/tiltfill/ekodgikandbohjbgfofemohoefkpgkpd)에서 **Chrome에 추가**를 누릅니다. 설치한 뒤에는 열려 있던 유튜브 탭을 새로고침합니다.
+
+### 릴리스 ZIP으로 바로 넣기
+
+스토어를 쓰지 않는 환경에서는 [GitHub Releases](https://github.com/Argoneon1810/Tiltfill/releases/latest)에서 `tiltfill-1.0.0.zip`을 받아 지우지 않을 폴더에 압축을 푼 뒤, `chrome://extensions`(**개발자 모드** 켬 → **압축해제된 확장 프로그램을 로드합니다**)에서 그 폴더를 고릅니다.
 
 ### 소스에서 직접 빌드하기
 
@@ -62,6 +81,8 @@
 
 ### 잘리는 부분 고르기
 
+![조작 패널과 잘리는 영역 미리보기](docs/store/screenshots/3-panel.png)
+
 화면을 채우면 그림의 일부가 잘립니다. 그때 패널에 영상의 작은 미리보기가 나타나고, 지금 화면에 나오는 부분이 밝은 상자로 표시됩니다.
 
 - 상자를 끌면 화면에 나오는 부분이 따라 움직입니다. 상자 바깥을 누르면 상자가 그리로 옵니다.
@@ -70,6 +91,10 @@
 - 미리보기가 컴퓨터에 부담이 되면 **그림**을 끕니다. 영상 그림은 사라지고 상자만 남으며, 조작은 똑같이 됩니다.
 
 ### 돌리기
+
+| 회전 전 (좌우 여백) | 오른쪽 90도 회전 + 화면 채움 |
+| :---: | :---: |
+| ![회전 전](docs/store/screenshots/4-before-rotate.png) | ![회전 후](docs/store/screenshots/5-rotated.png) |
 
 채움 단추 아래의 네 단추에서 방향을 고릅니다. 바로, 오른쪽 90도, 180도, 왼쪽 90도입니다.
 
@@ -148,7 +173,7 @@
 
 아무것도 모으지 않고 어디로도 보내지 않습니다. 소스에 바깥으로 무언가를 보내는 코드가 없습니다.
 
-요구하는 권한은 유튜브 페이지에 대한 접근과, 설정을 저장하는 `storage` 둘입니다. 감지와 미리보기를 위해 영상 화면을 읽지만 그 일은 브라우저 안에서 끝나고, 설정도 브라우저 안에만 저장합니다.
+요구하는 권한은 유튜브 페이지에 대한 접근과, 설정을 저장하는 `storage` 둘입니다. 감지와 미리보기를 위해 영상 화면을 읽지만 그 일은 브라우저 안에서 끝나고, 설정도 브라우저 안에만 저장합니다. 전문은 [PRIVACY.md](PRIVACY.md) 에 있습니다.
 
 ## 고쳐 쓰려는 분께
 
@@ -184,3 +209,5 @@
 ## 라이선스
 
 [GPL-3.0-or-later](LICENSE). Copyright (C) 2026 Jinhoon Choi.
+
+스크린샷의 영상은 Blender Foundation 의 "Charge" ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), studio.blender.org) 를 이 확장으로 잘라 낸 모습과, NASA 고다드 우주비행센터의 "Visualizing NASA's Next Lunar Flyby" 를 이 확장으로 돌린 모습입니다. 두 기관은 Tiltfill 과 관계가 없으며 Tiltfill 을 보증하지 않습니다.
